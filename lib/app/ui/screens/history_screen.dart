@@ -14,6 +14,7 @@ import 'package:ai_project/app/ui/widgets/streak_pill.dart';
 import 'package:ai_project/app/ui/widgets/history/history_empty_state.dart';
 import 'package:ai_project/app/ui/widgets/history/mission_card.dart';
 import 'package:ai_project/utils/app_theme.dart';
+import 'package:ai_project/widgets/profile_avatar_button.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -42,18 +43,27 @@ class HistoryScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      GestureDetector(
-                        onTap: () => appController.mapEventToState(
-                          AppEvent.goToCamera(),
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
-                            vertical: 6.h,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () => appController.mapEventToState(
+                              AppEvent.goToCamera(),
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 14.w,
+                                vertical: 6.h,
+                              ),
+                              decoration: AppDecorations.buttonGhost,
+                              child: Text(
+                                '← Back',
+                                style: AppTextStyles.caption,
+                              ),
+                            ),
                           ),
-                          decoration: AppDecorations.buttonGhost,
-                          child: Text('← Back', style: AppTextStyles.caption),
-                        ),
+                          const ProfileAvatarButton(),
+                        ],
                       ),
                       SizedBox(height: 30.h),
                       Text('Dashboard', style: AppTextStyles.displayMedium),

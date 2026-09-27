@@ -1,48 +1,20 @@
-import 'dart:convert';
 import 'package:ai_project/app/models/prediction_result.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
+import 'package:ai_project/services/firestore_service.dart';
 
-class DBService {
-  static const _streakKey = 'snap_sort_streak';
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+/// Legacy DBService adapter extending [FirestoreService].
+/// Guarantees that existing callers (e.g. AppController) automatically route
+/// all operations through user-isolated Firestore paths with
+/// `FirebaseAuth.instance.currentUser!.uid`, removing hard-coded user IDs.
+class DBService extends FirestoreService {
+  DBService({super.firestore, super.auth});
+
+  @override
   Future<List<PredictionHistoryItem>> loadHistory() async {
-    QuerySnapshot result = await firestore
-        .collection('users')
-        .doc("1")
-        .collection("history")
-        .get();
-    List<PredictionHistoryItem> history = result.docs
-        .map(
-          (e) =>
-              PredictionHistoryItem.fromJson(e.data() as Map<String, dynamic>),
-        )
-        .toList();
-    return history;
+    return loadCases();
   }
 
+  @override
   Future<void> saveHistory(PredictionHistoryItem history) async {
-    var uuid = Uuid();
-    var id = uuid.v4();
-    try {
-      await firestore
-          .collection('users')
-          .doc("1")
-          .collection("history")
-          .doc(id)
-          .set(history.toJson());
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future<int> loadStreak() async {
-    var result = await firestore.collection('users').doc("1").get();
-    return result.data()?["streaks"] ?? 0;
-  }
-
-  Future<void> saveStreak(int streak) async {
-    await firestore.collection('users').doc("1").update({"streaks": streak});
+    return saveCase(history);
   }
 }

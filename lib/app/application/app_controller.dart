@@ -18,26 +18,40 @@ class AppController extends StateNotifier<AppState> {
   }
 
   Future<void> _init() async {
-    final results = await Future.wait([
-      _storageService.loadHistory(),
-      _storageService.loadStreak(),
-    ]);
+    try {
+      final results = await Future.wait([
+        _storageService.loadHistory(),
+        _storageService.loadStreak(),
+      ]);
 
-    List<PredictionHistoryItem> totalCases =
-        results[0] as List<PredictionHistoryItem>;
-    List<PredictionHistoryItem> normalCases = totalCases
-        .where((item) => !item.isPneumonia)
-        .toList();
-    List<PredictionHistoryItem> pneumoniaCases = totalCases
-        .where((item) => item.isPneumonia)
-        .toList();
-    state = state.copyWith(
-      history: totalCases,
-      totalCases: totalCases.length,
-      normalCases: normalCases.length,
-      pneumoniaCases: pneumoniaCases.length,
-      streak: results[1] as int,
-    );
+      List<PredictionHistoryItem> totalCases =
+          results[0] as List<PredictionHistoryItem>;
+      List<PredictionHistoryItem> normalCases = totalCases
+          .where((item) => !item.isPneumonia)
+          .toList();
+      List<PredictionHistoryItem> pneumoniaCases = totalCases
+          .where((item) => item.isPneumonia)
+          .toList();
+      state = state.copyWith(
+        history: totalCases,
+        totalCases: totalCases.length,
+        normalCases: normalCases.length,
+        pneumoniaCases: pneumoniaCases.length,
+        streak: results[1] as int,
+      );
+    } catch (_) {
+      // Unauthenticated state at initial app startup; reloaded upon sign-in.
+    }
+  }
+
+  /// Reloads user cases and streak data for the newly authenticated user.
+  Future<void> reloadUserData() async {
+    await _init();
+  }
+
+  /// Resets user state to initial state when logging out.
+  void resetUserData() {
+    state = AppState.initial();
   }
 
   Future<void> setPhoto({required File file}) async {

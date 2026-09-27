@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lung Lens</string>
+    <!-- Replace with your actual Facebook App ID from Meta Developer Dashboard -->
+    <string name="facebook_app_id">28536099576073850</string>
+    <!-- fb followed immediately by your Facebook App ID (e.g. fb123456789) -->
+    <string name="fb_login_protocol_scheme">fb28536099576073850</string>
+    <!-- Replace with your actual Facebook Client Token from App Dashboard > Settings > Advanced -->
+    <string name="facebook_client_token">b78768e15073bdeef42e66f0e6750ece</string>
+</resources>

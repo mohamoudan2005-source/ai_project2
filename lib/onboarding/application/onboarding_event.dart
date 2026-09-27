@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:ai_project/app/application/app_state.dart';
 
 part 'onboarding_event.freezed.dart';
 
