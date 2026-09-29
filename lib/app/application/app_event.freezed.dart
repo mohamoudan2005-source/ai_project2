@@ -20,6 +20,14 @@ mixin _$AppEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -30,6 +38,9 @@ mixin _$AppEvent {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -40,6 +51,9 @@ mixin _$AppEvent {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -51,6 +65,8 @@ mixin _$AppEvent {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -61,6 +77,8 @@ mixin _$AppEvent {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -71,6 +89,8 @@ mixin _$AppEvent {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,
@@ -172,6 +192,14 @@ class _$SetPhotoImpl implements SetPhoto {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -186,6 +214,9 @@ class _$SetPhotoImpl implements SetPhoto {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -200,6 +231,9 @@ class _$SetPhotoImpl implements SetPhoto {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -218,6 +252,8 @@ class _$SetPhotoImpl implements SetPhoto {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -232,6 +268,8 @@ class _$SetPhotoImpl implements SetPhoto {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -246,6 +284,8 @@ class _$SetPhotoImpl implements SetPhoto {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,
@@ -271,6 +311,398 @@ abstract class SetPhoto implements AppEvent {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SetPhotoImplCopyWith<_$SetPhotoImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$SetPatientInfoImplCopyWith<$Res> {
+  factory _$$SetPatientInfoImplCopyWith(
+    _$SetPatientInfoImpl value,
+    $Res Function(_$SetPatientInfoImpl) then,
+  ) = __$$SetPatientInfoImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String fullName, int age, String gender, String phone});
+}
+
+/// @nodoc
+class __$$SetPatientInfoImplCopyWithImpl<$Res>
+    extends _$AppEventCopyWithImpl<$Res, _$SetPatientInfoImpl>
+    implements _$$SetPatientInfoImplCopyWith<$Res> {
+  __$$SetPatientInfoImplCopyWithImpl(
+    _$SetPatientInfoImpl _value,
+    $Res Function(_$SetPatientInfoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of AppEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? fullName = null,
+    Object? age = null,
+    Object? gender = null,
+    Object? phone = null,
+  }) {
+    return _then(
+      _$SetPatientInfoImpl(
+        fullName: null == fullName
+            ? _value.fullName
+            : fullName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        age: null == age
+            ? _value.age
+            : age // ignore: cast_nullable_to_non_nullable
+                  as int,
+        gender: null == gender
+            ? _value.gender
+            : gender // ignore: cast_nullable_to_non_nullable
+                  as String,
+        phone: null == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$SetPatientInfoImpl implements SetPatientInfo {
+  const _$SetPatientInfoImpl({
+    required this.fullName,
+    required this.age,
+    required this.gender,
+    required this.phone,
+  });
+
+  @override
+  final String fullName;
+  @override
+  final int age;
+  @override
+  final String gender;
+  @override
+  final String phone;
+
+  @override
+  String toString() {
+    return 'AppEvent.setPatientInfo(fullName: $fullName, age: $age, gender: $gender, phone: $phone)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SetPatientInfoImpl &&
+            (identical(other.fullName, fullName) ||
+                other.fullName == fullName) &&
+            (identical(other.age, age) || other.age == age) &&
+            (identical(other.gender, gender) || other.gender == gender) &&
+            (identical(other.phone, phone) || other.phone == phone));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, fullName, age, gender, phone);
+
+  /// Create a copy of AppEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SetPatientInfoImplCopyWith<_$SetPatientInfoImpl> get copyWith =>
+      __$$SetPatientInfoImplCopyWithImpl<_$SetPatientInfoImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
+    required TResult Function() goToHistory,
+    required TResult Function() goToCamera,
+    required TResult Function() clearError,
+    required TResult Function() analyzeMission,
+    required TResult Function() retryAnalysis,
+    required TResult Function(bool isXray) completeMission,
+  }) {
+    return setPatientInfo(fullName, age, gender, phone);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
+    TResult? Function()? goToHistory,
+    TResult? Function()? goToCamera,
+    TResult? Function()? clearError,
+    TResult? Function()? analyzeMission,
+    TResult? Function()? retryAnalysis,
+    TResult? Function(bool isXray)? completeMission,
+  }) {
+    return setPatientInfo?.call(fullName, age, gender, phone);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
+    TResult Function()? goToHistory,
+    TResult Function()? goToCamera,
+    TResult Function()? clearError,
+    TResult Function()? analyzeMission,
+    TResult Function()? retryAnalysis,
+    TResult Function(bool isXray)? completeMission,
+    required TResult orElse(),
+  }) {
+    if (setPatientInfo != null) {
+      return setPatientInfo(fullName, age, gender, phone);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
+    required TResult Function(GoToHistory value) goToHistory,
+    required TResult Function(GoToCamera value) goToCamera,
+    required TResult Function(ClearError value) clearError,
+    required TResult Function(AnalyzeMission value) analyzeMission,
+    required TResult Function(RetryAnalysis value) retryAnalysis,
+    required TResult Function(CompleteMission value) completeMission,
+  }) {
+    return setPatientInfo(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
+    TResult? Function(GoToHistory value)? goToHistory,
+    TResult? Function(GoToCamera value)? goToCamera,
+    TResult? Function(ClearError value)? clearError,
+    TResult? Function(AnalyzeMission value)? analyzeMission,
+    TResult? Function(RetryAnalysis value)? retryAnalysis,
+    TResult? Function(CompleteMission value)? completeMission,
+  }) {
+    return setPatientInfo?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
+    TResult Function(GoToHistory value)? goToHistory,
+    TResult Function(GoToCamera value)? goToCamera,
+    TResult Function(ClearError value)? clearError,
+    TResult Function(AnalyzeMission value)? analyzeMission,
+    TResult Function(RetryAnalysis value)? retryAnalysis,
+    TResult Function(CompleteMission value)? completeMission,
+    required TResult orElse(),
+  }) {
+    if (setPatientInfo != null) {
+      return setPatientInfo(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SetPatientInfo implements AppEvent {
+  const factory SetPatientInfo({
+    required final String fullName,
+    required final int age,
+    required final String gender,
+    required final String phone,
+  }) = _$SetPatientInfoImpl;
+
+  String get fullName;
+  int get age;
+  String get gender;
+  String get phone;
+
+  /// Create a copy of AppEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SetPatientInfoImplCopyWith<_$SetPatientInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ClearPatientInfoImplCopyWith<$Res> {
+  factory _$$ClearPatientInfoImplCopyWith(
+    _$ClearPatientInfoImpl value,
+    $Res Function(_$ClearPatientInfoImpl) then,
+  ) = __$$ClearPatientInfoImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$ClearPatientInfoImplCopyWithImpl<$Res>
+    extends _$AppEventCopyWithImpl<$Res, _$ClearPatientInfoImpl>
+    implements _$$ClearPatientInfoImplCopyWith<$Res> {
+  __$$ClearPatientInfoImplCopyWithImpl(
+    _$ClearPatientInfoImpl _value,
+    $Res Function(_$ClearPatientInfoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of AppEvent
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$ClearPatientInfoImpl implements ClearPatientInfo {
+  const _$ClearPatientInfoImpl();
+
+  @override
+  String toString() {
+    return 'AppEvent.clearPatientInfo()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$ClearPatientInfoImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
+    required TResult Function() goToHistory,
+    required TResult Function() goToCamera,
+    required TResult Function() clearError,
+    required TResult Function() analyzeMission,
+    required TResult Function() retryAnalysis,
+    required TResult Function(bool isXray) completeMission,
+  }) {
+    return clearPatientInfo();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
+    TResult? Function()? goToHistory,
+    TResult? Function()? goToCamera,
+    TResult? Function()? clearError,
+    TResult? Function()? analyzeMission,
+    TResult? Function()? retryAnalysis,
+    TResult? Function(bool isXray)? completeMission,
+  }) {
+    return clearPatientInfo?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
+    TResult Function()? goToHistory,
+    TResult Function()? goToCamera,
+    TResult Function()? clearError,
+    TResult Function()? analyzeMission,
+    TResult Function()? retryAnalysis,
+    TResult Function(bool isXray)? completeMission,
+    required TResult orElse(),
+  }) {
+    if (clearPatientInfo != null) {
+      return clearPatientInfo();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
+    required TResult Function(GoToHistory value) goToHistory,
+    required TResult Function(GoToCamera value) goToCamera,
+    required TResult Function(ClearError value) clearError,
+    required TResult Function(AnalyzeMission value) analyzeMission,
+    required TResult Function(RetryAnalysis value) retryAnalysis,
+    required TResult Function(CompleteMission value) completeMission,
+  }) {
+    return clearPatientInfo(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
+    TResult? Function(GoToHistory value)? goToHistory,
+    TResult? Function(GoToCamera value)? goToCamera,
+    TResult? Function(ClearError value)? clearError,
+    TResult? Function(AnalyzeMission value)? analyzeMission,
+    TResult? Function(RetryAnalysis value)? retryAnalysis,
+    TResult? Function(CompleteMission value)? completeMission,
+  }) {
+    return clearPatientInfo?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
+    TResult Function(GoToHistory value)? goToHistory,
+    TResult Function(GoToCamera value)? goToCamera,
+    TResult Function(ClearError value)? clearError,
+    TResult Function(AnalyzeMission value)? analyzeMission,
+    TResult Function(RetryAnalysis value)? retryAnalysis,
+    TResult Function(CompleteMission value)? completeMission,
+    required TResult orElse(),
+  }) {
+    if (clearPatientInfo != null) {
+      return clearPatientInfo(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class ClearPatientInfo implements AppEvent {
+  const factory ClearPatientInfo() = _$ClearPatientInfoImpl;
 }
 
 /// @nodoc
@@ -317,6 +749,14 @@ class _$GoToHistoryImpl implements GoToHistory {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -331,6 +771,9 @@ class _$GoToHistoryImpl implements GoToHistory {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -345,6 +788,9 @@ class _$GoToHistoryImpl implements GoToHistory {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -363,6 +809,8 @@ class _$GoToHistoryImpl implements GoToHistory {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -377,6 +825,8 @@ class _$GoToHistoryImpl implements GoToHistory {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -391,6 +841,8 @@ class _$GoToHistoryImpl implements GoToHistory {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,
@@ -454,6 +906,14 @@ class _$GoToCameraImpl implements GoToCamera {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -468,6 +928,9 @@ class _$GoToCameraImpl implements GoToCamera {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -482,6 +945,9 @@ class _$GoToCameraImpl implements GoToCamera {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -500,6 +966,8 @@ class _$GoToCameraImpl implements GoToCamera {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -514,6 +982,8 @@ class _$GoToCameraImpl implements GoToCamera {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -528,6 +998,8 @@ class _$GoToCameraImpl implements GoToCamera {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,
@@ -591,6 +1063,14 @@ class _$ClearErrorImpl implements ClearError {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -605,6 +1085,9 @@ class _$ClearErrorImpl implements ClearError {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -619,6 +1102,9 @@ class _$ClearErrorImpl implements ClearError {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -637,6 +1123,8 @@ class _$ClearErrorImpl implements ClearError {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -651,6 +1139,8 @@ class _$ClearErrorImpl implements ClearError {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -665,6 +1155,8 @@ class _$ClearErrorImpl implements ClearError {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,
@@ -728,6 +1220,14 @@ class _$AnalyzeMissionImpl implements AnalyzeMission {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -742,6 +1242,9 @@ class _$AnalyzeMissionImpl implements AnalyzeMission {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -756,6 +1259,9 @@ class _$AnalyzeMissionImpl implements AnalyzeMission {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -774,6 +1280,8 @@ class _$AnalyzeMissionImpl implements AnalyzeMission {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -788,6 +1296,8 @@ class _$AnalyzeMissionImpl implements AnalyzeMission {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -802,6 +1312,8 @@ class _$AnalyzeMissionImpl implements AnalyzeMission {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,
@@ -865,6 +1377,14 @@ class _$RetryAnalysisImpl implements RetryAnalysis {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -879,6 +1399,9 @@ class _$RetryAnalysisImpl implements RetryAnalysis {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -893,6 +1416,9 @@ class _$RetryAnalysisImpl implements RetryAnalysis {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -911,6 +1437,8 @@ class _$RetryAnalysisImpl implements RetryAnalysis {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -925,6 +1453,8 @@ class _$RetryAnalysisImpl implements RetryAnalysis {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -939,6 +1469,8 @@ class _$RetryAnalysisImpl implements RetryAnalysis {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,
@@ -1032,6 +1564,14 @@ class _$CompleteMissionImpl implements CompleteMission {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(File file) setPhoto,
+    required TResult Function(
+      String fullName,
+      int age,
+      String gender,
+      String phone,
+    )
+    setPatientInfo,
+    required TResult Function() clearPatientInfo,
     required TResult Function() goToHistory,
     required TResult Function() goToCamera,
     required TResult Function() clearError,
@@ -1046,6 +1586,9 @@ class _$CompleteMissionImpl implements CompleteMission {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(File file)? setPhoto,
+    TResult? Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult? Function()? clearPatientInfo,
     TResult? Function()? goToHistory,
     TResult? Function()? goToCamera,
     TResult? Function()? clearError,
@@ -1060,6 +1603,9 @@ class _$CompleteMissionImpl implements CompleteMission {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(File file)? setPhoto,
+    TResult Function(String fullName, int age, String gender, String phone)?
+    setPatientInfo,
+    TResult Function()? clearPatientInfo,
     TResult Function()? goToHistory,
     TResult Function()? goToCamera,
     TResult Function()? clearError,
@@ -1078,6 +1624,8 @@ class _$CompleteMissionImpl implements CompleteMission {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(SetPhoto value) setPhoto,
+    required TResult Function(SetPatientInfo value) setPatientInfo,
+    required TResult Function(ClearPatientInfo value) clearPatientInfo,
     required TResult Function(GoToHistory value) goToHistory,
     required TResult Function(GoToCamera value) goToCamera,
     required TResult Function(ClearError value) clearError,
@@ -1092,6 +1640,8 @@ class _$CompleteMissionImpl implements CompleteMission {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(SetPhoto value)? setPhoto,
+    TResult? Function(SetPatientInfo value)? setPatientInfo,
+    TResult? Function(ClearPatientInfo value)? clearPatientInfo,
     TResult? Function(GoToHistory value)? goToHistory,
     TResult? Function(GoToCamera value)? goToCamera,
     TResult? Function(ClearError value)? clearError,
@@ -1106,6 +1656,8 @@ class _$CompleteMissionImpl implements CompleteMission {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SetPhoto value)? setPhoto,
+    TResult Function(SetPatientInfo value)? setPatientInfo,
+    TResult Function(ClearPatientInfo value)? clearPatientInfo,
     TResult Function(GoToHistory value)? goToHistory,
     TResult Function(GoToCamera value)? goToCamera,
     TResult Function(ClearError value)? clearError,

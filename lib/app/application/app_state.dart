@@ -71,6 +71,17 @@ class AppState with _$AppState {
     PredictionResult? result,
     required bool isLoading,
     String? error,
+
+    // Patient Information for Current Examination
+    String? patientName,
+    int? patientAge,
+    String? patientGender,
+    String? patientPhone,
+
+    // Active Examination Record
+    String? currentCaseId,
+    String? currentPhotoURL,
+    PredictionHistoryItem? currentCase,
   }) = _AppState;
 
   const AppState._();
@@ -89,8 +100,21 @@ class AppState with _$AppState {
     totalCases: 0,
     isLoading: false,
     error: null,
+    patientName: null,
+    patientAge: null,
+    patientGender: null,
+    patientPhone: null,
+    currentCaseId: null,
+    currentPhotoURL: null,
+    currentCase: null,
   );
 
   bool get hasPhoto => photoPath != null && photoBase64 != null;
+  bool get hasPatientInfo =>
+      patientName != null &&
+      patientName!.trim().isNotEmpty &&
+      patientAge != null &&
+      patientPhone != null &&
+      patientPhone!.trim().isNotEmpty;
   int get completedCount => completedSteps.length;
 }

@@ -15,14 +15,28 @@ class ProfileAvatarButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authService = ref.watch(authServiceProvider);
     final user = authService.currentUser;
+    final userProfile = ref.watch(userProfileStreamProvider).value;
     final double buttonSize = size ?? 43.w;
 
-    final photoUrl = user?.photoURL;
-    final initial =
-        (user?.displayName?.isNotEmpty == true
-                ? user!.displayName![0]
-                : (user?.email?.isNotEmpty == true ? user!.email![0] : 'U'))
-            .toUpperCase();
+    // Display Priority:
+    // 1. Custom profile image saved in Firestore
+    // 2. Google/Facebook provider photoURL
+    // 3. Default avatar
+    final effectivePhotoUrl = (userProfile?.profileImage?.isNotEmpty == true)
+        ? userProfile!.profileImage
+        : (user?.photoURL?.isNotEmpty == true ? user!.photoURL : null);
+
+    final displayName = (userProfile?.fullName?.isNotEmpty == true)
+        ? userProfile!.fullName!
+        : (userProfile?.displayName.isNotEmpty == true
+              ? userProfile!.displayName
+              : (user?.displayName?.isNotEmpty == true
+                    ? user!.displayName!
+                    : (user?.email?.isNotEmpty == true
+                          ? user!.email!.split('@').first
+                          : 'U')));
+
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
 
     return GestureDetector(
       onTap: () => UserProfileModal.show(context),
@@ -45,9 +59,10 @@ class ProfileAvatarButton extends ConsumerWidget {
           ],
         ),
         child: ClipOval(
-          child: photoUrl != null && photoUrl.isNotEmpty
+          child: effectivePhotoUrl != null && effectivePhotoUrl.isNotEmpty
               ? Image.network(
-                  photoUrl,
+                  effectivePhotoUrl,
+                  key: ValueKey(effectivePhotoUrl),
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       _buildFallback(initial),

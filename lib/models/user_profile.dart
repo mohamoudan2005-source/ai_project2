@@ -6,7 +6,10 @@ class UserProfile {
   final String displayName;
   final String? fullName;
   final String? username;
+  final String? gender;
+  final String? phone;
   final String email;
+  final String? profileImage;
   final String photoURL;
   final String provider;
   final DateTime? createdAt;
@@ -17,7 +20,10 @@ class UserProfile {
     required this.displayName,
     this.fullName,
     this.username,
+    this.gender,
+    this.phone,
     required this.email,
+    this.profileImage,
     required this.photoURL,
     required this.provider,
     this.createdAt,
@@ -29,6 +35,8 @@ class UserProfile {
     String? providerOverride,
     String? fullName,
     String? username,
+    String? gender,
+    String? phone,
   }) {
     String provider = providerOverride ?? 'firebase';
     if (user.providerData.isNotEmpty) {
@@ -50,7 +58,10 @@ class UserProfile {
           (user.email != null && user.email!.isNotEmpty
               ? user.email!.split('@').first
               : null),
+      gender: gender,
+      phone: phone,
       email: user.email ?? '',
+      profileImage: null,
       photoURL: user.photoURL ?? '',
       provider: provider,
       createdAt: user.metadata.creationTime,
@@ -65,7 +76,10 @@ class UserProfile {
           map['displayName'] as String? ?? map['fullName'] as String? ?? '',
       fullName: map['fullName'] as String?,
       username: map['username'] as String?,
+      gender: map['gender'] as String?,
+      phone: map['phone'] as String?,
       email: map['email'] as String? ?? '',
+      profileImage: map['profileImage'] as String?,
       photoURL: map['photoURL'] as String? ?? '',
       provider: map['provider'] as String? ?? 'firebase',
       createdAt: _parseDateTime(map['createdAt']),
@@ -88,7 +102,10 @@ class UserProfile {
       'displayName': displayName,
       if (fullName != null) 'fullName': fullName,
       if (username != null) 'username': username,
+      if (gender != null) 'gender': gender,
+      if (phone != null) 'phone': phone,
       'email': email,
+      if (profileImage != null) 'profileImage': profileImage,
       'photoURL': photoURL,
       'provider': provider,
       'createdAt': createdAt != null
@@ -96,5 +113,35 @@ class UserProfile {
           : FieldValue.serverTimestamp(),
       'lastLoginAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  UserProfile copyWith({
+    String? uid,
+    String? displayName,
+    String? fullName,
+    String? username,
+    String? gender,
+    String? phone,
+    String? email,
+    String? profileImage,
+    String? photoURL,
+    String? provider,
+    DateTime? createdAt,
+    DateTime? lastLoginAt,
+  }) {
+    return UserProfile(
+      uid: uid ?? this.uid,
+      displayName: displayName ?? this.displayName,
+      fullName: fullName ?? this.fullName,
+      username: username ?? this.username,
+      gender: gender ?? this.gender,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      profileImage: profileImage ?? this.profileImage,
+      photoURL: photoURL ?? this.photoURL,
+      provider: provider ?? this.provider,
+      createdAt: createdAt ?? this.createdAt,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+    );
   }
 }

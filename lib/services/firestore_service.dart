@@ -48,6 +48,8 @@ class FirestoreService {
     String? provider,
     String? fullName,
     String? username,
+    String? gender,
+    String? phone,
   }) async {
     final docRef = _firestore.collection('users').doc(user.uid);
     final snapshot = await docRef.get();
@@ -73,22 +75,75 @@ class FirestoreService {
               ? user.email!.split('@').first
               : ''),
       'displayName': effectiveDisplayName,
+      'gender': ?gender,
+      'phone': ?phone,
       'email': user.email ?? '',
-      'photoURL': user.photoURL ?? '',
       'provider': providerId,
       'lastLoginAt': FieldValue.serverTimestamp(),
     };
 
     if (!snapshot.exists) {
+      data['photoURL'] = user.photoURL ?? '';
       data['createdAt'] = FieldValue.serverTimestamp();
       data['streaks'] = 0;
       await docRef.set(data);
     } else {
+      final existingPhotoUrl = snapshot.data()?['photoURL'];
+      if (existingPhotoUrl is! String || existingPhotoUrl.isEmpty) {
+        data['photoURL'] = user.photoURL ?? '';
+      }
       if (snapshot.data()?['createdAt'] == null) {
         data['createdAt'] = FieldValue.serverTimestamp();
       }
       await docRef.set(data, SetOptions(merge: true));
     }
+  }
+
+  /// Updates authenticated doctor's profile information (fullName, gender, phone).
+  Future<void> updateDoctorProfile({
+    String? fullName,
+    String? gender,
+    String? phone,
+  }) async {
+    final data = <String, dynamic>{
+      'fullName': ?fullName,
+      'gender': ?gender,
+      'phone': ?phone,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    await _userDocRef.set(data, SetOptions(merge: true));
+  }
+
+  /// Updates only the authenticated user's application profile image URL.
+  Future<void> updateProfilePhotoUrl(String photoURL) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw StateError('No authenticated user found.');
+    }
+
+    // Store the app's custom profile image separately from provider photos.
+    await _firestore.collection('users').doc(user.uid).set({
+      'profileImage': photoURL,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  /// Real-time stream of the authenticated user's profile document from Firestore.
+  Stream<UserProfile?> userProfileStream([String? uid]) {
+    final user = _auth.currentUser;
+    if (user == null && uid == null) {
+      return Stream.value(null);
+    }
+    final targetUid = uid ?? user!.uid;
+    return _firestore
+        .collection('users')
+        .doc(targetUid)
+        .snapshots()
+        .map(
+          (snap) => snap.exists && snap.data() != null
+              ? UserProfile.fromMap(snap.data()!)
+              : null,
+        );
   }
 
   /// Retrieves the user profile document from Firestore.
@@ -109,7 +164,9 @@ class FirestoreService {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _casesRef.get();
 
     final List<PredictionHistoryItem> cases = snapshot.docs.map((doc) {
-      return PredictionHistoryItem.fromJson(doc.data());
+      final data = Map<String, dynamic>.from(doc.data());
+      data['id'] = doc.id;
+      return PredictionHistoryItem.fromJson(data);
     }).toList();
 
     // Sort descending by completion timestamp
@@ -118,9 +175,16 @@ class FirestoreService {
   }
 
   /// Saves a new examination case under `users/{uid}/cases/{caseId}`.
-  Future<void> saveCase(PredictionHistoryItem caseItem) async {
-    final String caseId = const Uuid().v4();
-    await _casesRef.doc(caseId).set(caseItem.toJson());
+  Future<String> saveCase(
+    PredictionHistoryItem caseItem, {
+    String? explicitCaseId,
+  }) async {
+    final String caseId = explicitCaseId ?? caseItem.id ?? const Uuid().v4();
+    final data = Map<String, dynamic>.from(caseItem.toJson());
+    data['id'] = caseId;
+    data['completedAt'] = Timestamp.fromDate(caseItem.completedAt);
+    await _casesRef.doc(caseId).set(data);
+    return caseId;
   }
 
   /// Backward-compatibility aliases matching original DBService method signatures

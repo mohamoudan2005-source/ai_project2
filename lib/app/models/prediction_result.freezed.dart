@@ -199,11 +199,17 @@ abstract class _PredictionResult extends PredictionResult {
 
 /// @nodoc
 mixin _$PredictionHistoryItem {
+  String? get id => throw _privateConstructorUsedError;
+  String? get patientName => throw _privateConstructorUsedError;
+  int? get patientAge => throw _privateConstructorUsedError;
+  String? get patientGender => throw _privateConstructorUsedError;
+  String? get patientPhone => throw _privateConstructorUsedError;
   String get label => throw _privateConstructorUsedError;
   double get probability => throw _privateConstructorUsedError;
   bool get isPneumonia => throw _privateConstructorUsedError;
   DateTime get completedAt => throw _privateConstructorUsedError;
   String get photoPath => throw _privateConstructorUsedError;
+  String? get photoURL => throw _privateConstructorUsedError;
 
   /// Create a copy of PredictionHistoryItem
   /// with the given fields replaced by the non-null parameter values.
@@ -220,11 +226,17 @@ abstract class $PredictionHistoryItemCopyWith<$Res> {
   ) = _$PredictionHistoryItemCopyWithImpl<$Res, PredictionHistoryItem>;
   @useResult
   $Res call({
+    String? id,
+    String? patientName,
+    int? patientAge,
+    String? patientGender,
+    String? patientPhone,
     String label,
     double probability,
     bool isPneumonia,
     DateTime completedAt,
     String photoPath,
+    String? photoURL,
   });
 }
 
@@ -246,14 +258,40 @@ class _$PredictionHistoryItemCopyWithImpl<
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
+    Object? patientName = freezed,
+    Object? patientAge = freezed,
+    Object? patientGender = freezed,
+    Object? patientPhone = freezed,
     Object? label = null,
     Object? probability = null,
     Object? isPneumonia = null,
     Object? completedAt = null,
     Object? photoPath = null,
+    Object? photoURL = freezed,
   }) {
     return _then(
       _value.copyWith(
+            id: freezed == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            patientName: freezed == patientName
+                ? _value.patientName
+                : patientName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            patientAge: freezed == patientAge
+                ? _value.patientAge
+                : patientAge // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            patientGender: freezed == patientGender
+                ? _value.patientGender
+                : patientGender // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            patientPhone: freezed == patientPhone
+                ? _value.patientPhone
+                : patientPhone // ignore: cast_nullable_to_non_nullable
+                      as String?,
             label: null == label
                 ? _value.label
                 : label // ignore: cast_nullable_to_non_nullable
@@ -274,6 +312,10 @@ class _$PredictionHistoryItemCopyWithImpl<
                 ? _value.photoPath
                 : photoPath // ignore: cast_nullable_to_non_nullable
                       as String,
+            photoURL: freezed == photoURL
+                ? _value.photoURL
+                : photoURL // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -290,11 +332,17 @@ abstract class _$$PredictionHistoryItemImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    String? id,
+    String? patientName,
+    int? patientAge,
+    String? patientGender,
+    String? patientPhone,
     String label,
     double probability,
     bool isPneumonia,
     DateTime completedAt,
     String photoPath,
+    String? photoURL,
   });
 }
 
@@ -313,14 +361,40 @@ class __$$PredictionHistoryItemImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
+    Object? patientName = freezed,
+    Object? patientAge = freezed,
+    Object? patientGender = freezed,
+    Object? patientPhone = freezed,
     Object? label = null,
     Object? probability = null,
     Object? isPneumonia = null,
     Object? completedAt = null,
     Object? photoPath = null,
+    Object? photoURL = freezed,
   }) {
     return _then(
       _$PredictionHistoryItemImpl(
+        id: freezed == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        patientName: freezed == patientName
+            ? _value.patientName
+            : patientName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        patientAge: freezed == patientAge
+            ? _value.patientAge
+            : patientAge // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        patientGender: freezed == patientGender
+            ? _value.patientGender
+            : patientGender // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        patientPhone: freezed == patientPhone
+            ? _value.patientPhone
+            : patientPhone // ignore: cast_nullable_to_non_nullable
+                  as String?,
         label: null == label
             ? _value.label
             : label // ignore: cast_nullable_to_non_nullable
@@ -341,6 +415,10 @@ class __$$PredictionHistoryItemImplCopyWithImpl<$Res>
             ? _value.photoPath
             : photoPath // ignore: cast_nullable_to_non_nullable
                   as String,
+        photoURL: freezed == photoURL
+            ? _value.photoURL
+            : photoURL // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -350,13 +428,29 @@ class __$$PredictionHistoryItemImplCopyWithImpl<$Res>
 
 class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
   const _$PredictionHistoryItemImpl({
+    this.id,
+    this.patientName,
+    this.patientAge,
+    this.patientGender,
+    this.patientPhone,
     required this.label,
     required this.probability,
     required this.isPneumonia,
     required this.completedAt,
-    required this.photoPath,
+    this.photoPath = '',
+    this.photoURL,
   }) : super._();
 
+  @override
+  final String? id;
+  @override
+  final String? patientName;
+  @override
+  final int? patientAge;
+  @override
+  final String? patientGender;
+  @override
+  final String? patientPhone;
   @override
   final String label;
   @override
@@ -366,11 +460,14 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
   @override
   final DateTime completedAt;
   @override
+  @JsonKey()
   final String photoPath;
+  @override
+  final String? photoURL;
 
   @override
   String toString() {
-    return 'PredictionHistoryItem(label: $label, probability: $probability, isPneumonia: $isPneumonia, completedAt: $completedAt, photoPath: $photoPath)';
+    return 'PredictionHistoryItem(id: $id, patientName: $patientName, patientAge: $patientAge, patientGender: $patientGender, patientPhone: $patientPhone, label: $label, probability: $probability, isPneumonia: $isPneumonia, completedAt: $completedAt, photoPath: $photoPath, photoURL: $photoURL)';
   }
 
   @override
@@ -378,6 +475,15 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PredictionHistoryItemImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.patientName, patientName) ||
+                other.patientName == patientName) &&
+            (identical(other.patientAge, patientAge) ||
+                other.patientAge == patientAge) &&
+            (identical(other.patientGender, patientGender) ||
+                other.patientGender == patientGender) &&
+            (identical(other.patientPhone, patientPhone) ||
+                other.patientPhone == patientPhone) &&
             (identical(other.label, label) || other.label == label) &&
             (identical(other.probability, probability) ||
                 other.probability == probability) &&
@@ -386,17 +492,25 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
             (identical(other.completedAt, completedAt) ||
                 other.completedAt == completedAt) &&
             (identical(other.photoPath, photoPath) ||
-                other.photoPath == photoPath));
+                other.photoPath == photoPath) &&
+            (identical(other.photoURL, photoURL) ||
+                other.photoURL == photoURL));
   }
 
   @override
   int get hashCode => Object.hash(
     runtimeType,
+    id,
+    patientName,
+    patientAge,
+    patientGender,
+    patientPhone,
     label,
     probability,
     isPneumonia,
     completedAt,
     photoPath,
+    photoURL,
   );
 
   /// Create a copy of PredictionHistoryItem
@@ -414,14 +528,30 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
 
 abstract class _PredictionHistoryItem extends PredictionHistoryItem {
   const factory _PredictionHistoryItem({
+    final String? id,
+    final String? patientName,
+    final int? patientAge,
+    final String? patientGender,
+    final String? patientPhone,
     required final String label,
     required final double probability,
     required final bool isPneumonia,
     required final DateTime completedAt,
-    required final String photoPath,
+    final String photoPath,
+    final String? photoURL,
   }) = _$PredictionHistoryItemImpl;
   const _PredictionHistoryItem._() : super._();
 
+  @override
+  String? get id;
+  @override
+  String? get patientName;
+  @override
+  int? get patientAge;
+  @override
+  String? get patientGender;
+  @override
+  String? get patientPhone;
   @override
   String get label;
   @override
@@ -432,6 +562,8 @@ abstract class _PredictionHistoryItem extends PredictionHistoryItem {
   DateTime get completedAt;
   @override
   String get photoPath;
+  @override
+  String? get photoURL;
 
   /// Create a copy of PredictionHistoryItem
   /// with the given fields replaced by the non-null parameter values.

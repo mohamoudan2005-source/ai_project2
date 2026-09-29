@@ -15,6 +15,6 @@ class DBService extends FirestoreService {
 
   @override
   Future<void> saveHistory(PredictionHistoryItem history) async {
-    return saveCase(history);
+    await saveCase(history);
   }
 }

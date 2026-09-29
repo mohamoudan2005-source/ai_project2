@@ -208,6 +208,63 @@ class ScanningScreen extends HookConsumerWidget {
               ],
             ),
           ),
+          if (appState.error != null)
+            Positioned.fill(
+              child: ColoredBox(
+                color: AppColors.dark.withValues(alpha: 0.94),
+                child: SafeArea(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 28.w),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SortyWidget(mood: SortyMood.concerned, size: 96.sp),
+                          SizedBox(height: 20.h),
+                          Text(
+                            'Examination not saved',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.headingSmall.copyWith(
+                              color: AppColors.textMain,
+                            ),
+                          ),
+                          SizedBox(height: 10.h),
+                          Text(
+                            appState.error!,
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSub,
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => appController.mapEventToState(
+                                const AppEvent.retryAnalysis(),
+                              ),
+                              icon: const Icon(Icons.refresh_rounded),
+                              label: const Text('Retry Examination'),
+                            ),
+                          ),
+                          SizedBox(height: 10.h),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => appController.mapEventToState(
+                                const AppEvent.goToCamera(),
+                              ),
+                              icon: const Icon(Icons.camera_alt_outlined),
+                              label: const Text('Capture Another X-ray'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

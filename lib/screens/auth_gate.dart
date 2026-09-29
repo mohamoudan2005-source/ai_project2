@@ -25,6 +25,7 @@ class AuthGate extends ConsumerStatefulWidget {
 
 class _AuthGateState extends ConsumerState<AuthGate> {
   String? _lastLoadedUid;
+  String? _loadedUid;
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +43,43 @@ class _AuthGateState extends ConsumerState<AuthGate> {
 
         // ── 2. Unauthenticated ───────────────────────────────────────────────
         if (user == null) {
+          final shouldResetUserData = _lastLoadedUid != null;
           _lastLoadedUid = null;
+          _loadedUid = null;
+          if (shouldResetUserData) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && authService.currentUser == null) {
+                ref.read(appProvider.notifier).resetUserData();
+              }
+            });
+          }
           return const LoginScreen();
         }
 
         // ── 3. Authenticated: Reload user-specific data on user change ───────
         if (_lastLoadedUid != user.uid) {
           _lastLoadedUid = user.uid;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(appProvider.notifier).reloadUserData();
+          _loadedUid = null;
+          final uid = user.uid;
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted ||
+                _lastLoadedUid != uid ||
+                authService.currentUser?.uid != uid) {
+              return;
+            }
+            final controller = ref.read(appProvider.notifier);
+            controller.resetUserData();
+            await controller.reloadUserData();
+            if (mounted &&
+                _lastLoadedUid == uid &&
+                authService.currentUser?.uid == uid) {
+              setState(() => _loadedUid = uid);
+            }
           });
+        }
+
+        if (_loadedUid != user.uid) {
+          return const _AuthLoadingScreen();
         }
 
         // ── 4. Route to Main App or Onboarding ───────────────────────────────

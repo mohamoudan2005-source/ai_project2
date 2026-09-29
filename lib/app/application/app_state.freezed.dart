@@ -29,7 +29,16 @@ mixin _$AppState {
   String? get photoBase64 => throw _privateConstructorUsedError;
   PredictionResult? get result => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
-  String? get error => throw _privateConstructorUsedError;
+  String? get error =>
+      throw _privateConstructorUsedError; // Patient Information for Current Examination
+  String? get patientName => throw _privateConstructorUsedError;
+  int? get patientAge => throw _privateConstructorUsedError;
+  String? get patientGender => throw _privateConstructorUsedError;
+  String? get patientPhone =>
+      throw _privateConstructorUsedError; // Active Examination Record
+  String? get currentCaseId => throw _privateConstructorUsedError;
+  String? get currentPhotoURL => throw _privateConstructorUsedError;
+  PredictionHistoryItem? get currentCase => throw _privateConstructorUsedError;
 
   /// Create a copy of AppState
   /// with the given fields replaced by the non-null parameter values.
@@ -57,9 +66,17 @@ abstract class $AppStateCopyWith<$Res> {
     PredictionResult? result,
     bool isLoading,
     String? error,
+    String? patientName,
+    int? patientAge,
+    String? patientGender,
+    String? patientPhone,
+    String? currentCaseId,
+    String? currentPhotoURL,
+    PredictionHistoryItem? currentCase,
   });
 
   $PredictionResultCopyWith<$Res>? get result;
+  $PredictionHistoryItemCopyWith<$Res>? get currentCase;
 }
 
 /// @nodoc
@@ -90,6 +107,13 @@ class _$AppStateCopyWithImpl<$Res, $Val extends AppState>
     Object? result = freezed,
     Object? isLoading = null,
     Object? error = freezed,
+    Object? patientName = freezed,
+    Object? patientAge = freezed,
+    Object? patientGender = freezed,
+    Object? patientPhone = freezed,
+    Object? currentCaseId = freezed,
+    Object? currentPhotoURL = freezed,
+    Object? currentCase = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -145,6 +169,34 @@ class _$AppStateCopyWithImpl<$Res, $Val extends AppState>
                 ? _value.error
                 : error // ignore: cast_nullable_to_non_nullable
                       as String?,
+            patientName: freezed == patientName
+                ? _value.patientName
+                : patientName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            patientAge: freezed == patientAge
+                ? _value.patientAge
+                : patientAge // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            patientGender: freezed == patientGender
+                ? _value.patientGender
+                : patientGender // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            patientPhone: freezed == patientPhone
+                ? _value.patientPhone
+                : patientPhone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            currentCaseId: freezed == currentCaseId
+                ? _value.currentCaseId
+                : currentCaseId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            currentPhotoURL: freezed == currentPhotoURL
+                ? _value.currentPhotoURL
+                : currentPhotoURL // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            currentCase: freezed == currentCase
+                ? _value.currentCase
+                : currentCase // ignore: cast_nullable_to_non_nullable
+                      as PredictionHistoryItem?,
           )
           as $Val,
     );
@@ -161,6 +213,20 @@ class _$AppStateCopyWithImpl<$Res, $Val extends AppState>
 
     return $PredictionResultCopyWith<$Res>(_value.result!, (value) {
       return _then(_value.copyWith(result: value) as $Val);
+    });
+  }
+
+  /// Create a copy of AppState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PredictionHistoryItemCopyWith<$Res>? get currentCase {
+    if (_value.currentCase == null) {
+      return null;
+    }
+
+    return $PredictionHistoryItemCopyWith<$Res>(_value.currentCase!, (value) {
+      return _then(_value.copyWith(currentCase: value) as $Val);
     });
   }
 }
@@ -188,10 +254,19 @@ abstract class _$$AppStateImplCopyWith<$Res>
     PredictionResult? result,
     bool isLoading,
     String? error,
+    String? patientName,
+    int? patientAge,
+    String? patientGender,
+    String? patientPhone,
+    String? currentCaseId,
+    String? currentPhotoURL,
+    PredictionHistoryItem? currentCase,
   });
 
   @override
   $PredictionResultCopyWith<$Res>? get result;
+  @override
+  $PredictionHistoryItemCopyWith<$Res>? get currentCase;
 }
 
 /// @nodoc
@@ -221,6 +296,13 @@ class __$$AppStateImplCopyWithImpl<$Res>
     Object? result = freezed,
     Object? isLoading = null,
     Object? error = freezed,
+    Object? patientName = freezed,
+    Object? patientAge = freezed,
+    Object? patientGender = freezed,
+    Object? patientPhone = freezed,
+    Object? currentCaseId = freezed,
+    Object? currentPhotoURL = freezed,
+    Object? currentCase = freezed,
   }) {
     return _then(
       _$AppStateImpl(
@@ -276,6 +358,34 @@ class __$$AppStateImplCopyWithImpl<$Res>
             ? _value.error
             : error // ignore: cast_nullable_to_non_nullable
                   as String?,
+        patientName: freezed == patientName
+            ? _value.patientName
+            : patientName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        patientAge: freezed == patientAge
+            ? _value.patientAge
+            : patientAge // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        patientGender: freezed == patientGender
+            ? _value.patientGender
+            : patientGender // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        patientPhone: freezed == patientPhone
+            ? _value.patientPhone
+            : patientPhone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        currentCaseId: freezed == currentCaseId
+            ? _value.currentCaseId
+            : currentCaseId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        currentPhotoURL: freezed == currentPhotoURL
+            ? _value.currentPhotoURL
+            : currentPhotoURL // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        currentCase: freezed == currentCase
+            ? _value.currentCase
+            : currentCase // ignore: cast_nullable_to_non_nullable
+                  as PredictionHistoryItem?,
       ),
     );
   }
@@ -298,6 +408,13 @@ class _$AppStateImpl extends _AppState {
     this.result,
     required this.isLoading,
     this.error,
+    this.patientName,
+    this.patientAge,
+    this.patientGender,
+    this.patientPhone,
+    this.currentCaseId,
+    this.currentPhotoURL,
+    this.currentCase,
   }) : _completedSteps = completedSteps,
        _history = history,
        super._();
@@ -340,10 +457,26 @@ class _$AppStateImpl extends _AppState {
   final bool isLoading;
   @override
   final String? error;
+  // Patient Information for Current Examination
+  @override
+  final String? patientName;
+  @override
+  final int? patientAge;
+  @override
+  final String? patientGender;
+  @override
+  final String? patientPhone;
+  // Active Examination Record
+  @override
+  final String? currentCaseId;
+  @override
+  final String? currentPhotoURL;
+  @override
+  final PredictionHistoryItem? currentCase;
 
   @override
   String toString() {
-    return 'AppState(screen: $screen, completedSteps: $completedSteps, history: $history, streak: $streak, totalCases: $totalCases, normalCases: $normalCases, pneumoniaCases: $pneumoniaCases, isXray: $isXray, photoPath: $photoPath, photoBase64: $photoBase64, result: $result, isLoading: $isLoading, error: $error)';
+    return 'AppState(screen: $screen, completedSteps: $completedSteps, history: $history, streak: $streak, totalCases: $totalCases, normalCases: $normalCases, pneumoniaCases: $pneumoniaCases, isXray: $isXray, photoPath: $photoPath, photoBase64: $photoBase64, result: $result, isLoading: $isLoading, error: $error, patientName: $patientName, patientAge: $patientAge, patientGender: $patientGender, patientPhone: $patientPhone, currentCaseId: $currentCaseId, currentPhotoURL: $currentPhotoURL, currentCase: $currentCase)';
   }
 
   @override
@@ -372,11 +505,25 @@ class _$AppStateImpl extends _AppState {
             (identical(other.result, result) || other.result == result) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
-            (identical(other.error, error) || other.error == error));
+            (identical(other.error, error) || other.error == error) &&
+            (identical(other.patientName, patientName) ||
+                other.patientName == patientName) &&
+            (identical(other.patientAge, patientAge) ||
+                other.patientAge == patientAge) &&
+            (identical(other.patientGender, patientGender) ||
+                other.patientGender == patientGender) &&
+            (identical(other.patientPhone, patientPhone) ||
+                other.patientPhone == patientPhone) &&
+            (identical(other.currentCaseId, currentCaseId) ||
+                other.currentCaseId == currentCaseId) &&
+            (identical(other.currentPhotoURL, currentPhotoURL) ||
+                other.currentPhotoURL == currentPhotoURL) &&
+            (identical(other.currentCase, currentCase) ||
+                other.currentCase == currentCase));
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     screen,
     const DeepCollectionEquality().hash(_completedSteps),
@@ -391,7 +538,14 @@ class _$AppStateImpl extends _AppState {
     result,
     isLoading,
     error,
-  );
+    patientName,
+    patientAge,
+    patientGender,
+    patientPhone,
+    currentCaseId,
+    currentPhotoURL,
+    currentCase,
+  ]);
 
   /// Create a copy of AppState
   /// with the given fields replaced by the non-null parameter values.
@@ -417,6 +571,13 @@ abstract class _AppState extends AppState {
     final PredictionResult? result,
     required final bool isLoading,
     final String? error,
+    final String? patientName,
+    final int? patientAge,
+    final String? patientGender,
+    final String? patientPhone,
+    final String? currentCaseId,
+    final String? currentPhotoURL,
+    final PredictionHistoryItem? currentCase,
   }) = _$AppStateImpl;
   const _AppState._() : super._();
 
@@ -445,7 +606,21 @@ abstract class _AppState extends AppState {
   @override
   bool get isLoading;
   @override
-  String? get error;
+  String? get error; // Patient Information for Current Examination
+  @override
+  String? get patientName;
+  @override
+  int? get patientAge;
+  @override
+  String? get patientGender;
+  @override
+  String? get patientPhone; // Active Examination Record
+  @override
+  String? get currentCaseId;
+  @override
+  String? get currentPhotoURL;
+  @override
+  PredictionHistoryItem? get currentCase;
 
   /// Create a copy of AppState
   /// with the given fields replaced by the non-null parameter values.
