@@ -59,16 +59,27 @@ class FirestoreService {
       providerId = user.providerData.first.providerId;
     }
 
-    final effectiveDisplayName = (fullName != null && fullName.isNotEmpty)
-        ? fullName
-        : (user.displayName ??
-              (user.email != null && user.email!.isNotEmpty
-                  ? user.email!.split('@').first
-                  : 'User'));
+    final requestedName = fullName?.trim();
+    final existingFullName = snapshot.data()?['fullName'];
+    final existingDisplayName = snapshot.data()?['displayName'];
+    final emailAlias = user.email?.split('@').first;
+    final resolvedFullName = requestedName != null && requestedName.isNotEmpty
+        ? requestedName
+        : (existingFullName is String &&
+                  existingFullName.trim().isNotEmpty &&
+                  existingFullName.trim() != emailAlias
+              ? existingFullName
+              : (user.displayName?.trim().isNotEmpty == true
+                    ? user.displayName!.trim()
+                    : (existingDisplayName is String &&
+                              existingDisplayName.trim().isNotEmpty &&
+                              existingDisplayName != emailAlias
+                          ? existingDisplayName
+                          : null)));
+    final effectiveDisplayName = resolvedFullName ?? 'User';
 
     final data = <String, dynamic>{
       'uid': user.uid,
-      'fullName': fullName ?? (user.displayName ?? effectiveDisplayName),
       'username':
           username ??
           (user.email != null && user.email!.isNotEmpty
@@ -81,6 +92,9 @@ class FirestoreService {
       'provider': providerId,
       'lastLoginAt': FieldValue.serverTimestamp(),
     };
+    if (resolvedFullName != null) {
+      data['fullName'] = resolvedFullName;
+    }
 
     if (!snapshot.exists) {
       data['photoURL'] = user.photoURL ?? '';
@@ -99,18 +113,37 @@ class FirestoreService {
     }
   }
 
-  /// Updates authenticated doctor's profile information (fullName, gender, phone).
+  /// Updates the authenticated doctor's profile at `users/{current uid}`.
   Future<void> updateDoctorProfile({
-    String? fullName,
+    required String fullName,
     String? gender,
     String? phone,
+    String? specialty,
+    String? hospitalClinic,
+    String? city,
+    String? country,
+    String? licenseNumber,
   }) async {
     final data = <String, dynamic>{
-      'fullName': ?fullName,
-      'gender': ?gender,
-      'phone': ?phone,
+      'fullName': fullName.trim(),
+      'displayName': fullName.trim(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
+    void setOptionalField(String key, String? value) {
+      final normalizedValue = value?.trim() ?? '';
+      data[key] = normalizedValue.isEmpty
+          ? FieldValue.delete()
+          : normalizedValue;
+    }
+
+    setOptionalField('gender', gender);
+    setOptionalField('phone', phone);
+    setOptionalField('specialty', specialty);
+    setOptionalField('hospitalClinic', hospitalClinic);
+    setOptionalField('city', city);
+    setOptionalField('country', country);
+    setOptionalField('licenseNumber', licenseNumber);
+
     await _userDocRef.set(data, SetOptions(merge: true));
   }
 

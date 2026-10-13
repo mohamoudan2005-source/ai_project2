@@ -33,7 +33,11 @@ class _UserProfileModalState extends ConsumerState<UserProfileModal> {
   static const _secondaryTextColor = Color(0xFFCCCCCC);
 
   bool _isLoggingOut = false;
+  bool _isSavingProfile = false;
+  bool _isSendingPasswordReset = false;
+  bool _isLoadingProfile = true;
   String? _copiedUid;
+  String? _profileLoadError;
   UserProfile? _profile;
   bool _isUploadingProfileImage = false;
   String? _customProfileImageUrl;
@@ -45,14 +49,28 @@ class _UserProfileModalState extends ConsumerState<UserProfileModal> {
   }
 
   Future<void> _loadProfile() async {
+    if (mounted) {
+      setState(() {
+        _isLoadingProfile = true;
+        _profileLoadError = null;
+      });
+    }
     try {
       final profile = await ref.read(firestoreServiceProvider).getUserProfile();
       if (mounted) {
         setState(() {
           _profile = profile;
+          _isLoadingProfile = false;
         });
       }
-    } catch (_) {}
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isLoadingProfile = false;
+          _profileLoadError = 'Could not load your profile: $error';
+        });
+      }
+    }
   }
 
   Future<void> _chooseProfileImage() async {
@@ -234,207 +252,369 @@ class _UserProfileModalState extends ConsumerState<UserProfileModal> {
   }
 
   Future<void> _openEditDoctorDialog() async {
-    final nameCtrl = TextEditingController(
-      text: _profile?.fullName ?? _profile?.displayName ?? '',
-    );
-    final phoneCtrl = TextEditingController(text: _profile?.phone ?? '');
-    String selectedGender = _profile?.gender ?? 'Male';
+    final user = ref.read(authServiceProvider).currentUser;
+    if (user == null) {
+      _showProfileImageError('Sign in to edit your profile.');
+      return;
+    }
 
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (dialogCtx, setDialogState) {
-            return AlertDialog(
-              backgroundColor: AppColors.cardAlt,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.r),
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-              ),
-              title: Text(
-                'Doctor Information',
-                style: GoogleFonts.nunito(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+    final profileDisplayName = _profile?.displayName.trim();
+    final emailAlias = user.email?.split('@').first;
+    final existingFullName = _profile?.fullName?.trim();
+    final controllers = <String, TextEditingController>{
+      'fullName': TextEditingController(
+        text:
+            existingFullName?.isNotEmpty == true &&
+                existingFullName != emailAlias
+            ? existingFullName!
+            : (user.displayName?.trim().isNotEmpty == true
+                  ? user.displayName!.trim()
+                  : (profileDisplayName?.isNotEmpty == true &&
+                            profileDisplayName != emailAlias &&
+                            profileDisplayName != 'User'
+                        ? profileDisplayName!
+                        : '')),
+      ),
+      'phone': TextEditingController(text: _profile?.phone ?? ''),
+      'specialty': TextEditingController(text: _profile?.specialty ?? ''),
+      'hospitalClinic': TextEditingController(
+        text: _profile?.hospitalClinic ?? '',
+      ),
+      'city': TextEditingController(text: _profile?.city ?? ''),
+      'country': TextEditingController(text: _profile?.country ?? ''),
+      'licenseNumber': TextEditingController(
+        text: _profile?.licenseNumber ?? '',
+      ),
+    };
+    final formKey = GlobalKey<FormState>();
+    String? selectedGender = _profile?.gender;
+    String? saveError;
+    BuildContext? editDialogContext;
+
+    try {
+      final saved = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          editDialogContext = dialogContext;
+          return StatefulBuilder(
+            builder: (dialogContext, setDialogState) {
+              final screenWidth = MediaQuery.sizeOf(dialogContext).width;
+              return AlertDialog(
+                backgroundColor: AppColors.cardAlt,
+                insetPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 24.h,
                 ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Information appears on medical PDF examination reports.',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12.sp,
-                        color: _secondaryTextColor,
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-
-                    // Doctor Full Name
-                    Text(
-                      'Full Name',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: _secondaryTextColor,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    TextField(
-                      controller: nameCtrl,
-                      style: GoogleFonts.nunito(
-                        color: Colors.white,
-                        fontSize: 14.sp,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'e.g. Dr. Alex Morgan',
-                        hintStyle: GoogleFonts.nunito(
-                          color: _secondaryTextColor,
-                        ),
-                        filled: true,
-                        fillColor: AppColors.card,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 14.w,
-                          vertical: 12.h,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.1),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-
-                    // Gender
-                    Text(
-                      'Gender',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: _secondaryTextColor,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Row(
-                      children: ['Male', 'Female'].map((g) {
-                        final isSel = selectedGender == g;
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () =>
-                                setDialogState(() => selectedGender = g),
-                            child: Container(
-                              margin: EdgeInsets.symmetric(horizontal: 2.w),
-                              padding: EdgeInsets.symmetric(vertical: 8.h),
-                              decoration: BoxDecoration(
-                                color: isSel
-                                    ? AppColors.primary
-                                    : AppColors.card,
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                g,
-                                style: GoogleFonts.nunito(
-                                  fontSize: 11.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSel
-                                      ? AppColors.dark
-                                      : _secondaryTextColor,
-                                ),
-                              ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.r),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                ),
+                title: Text(
+                  'Edit Doctor Profile',
+                  style: GoogleFonts.nunito(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                content: SizedBox(
+                  width: screenWidth > 700 ? 620 : screenWidth * 0.88,
+                  child: Form(
+                    key: formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Your email is managed by your sign-in account.',
+                            style: GoogleFonts.nunito(
+                              fontSize: 13.sp,
+                              color: _secondaryTextColor,
                             ),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                    SizedBox(height: 12.h),
-
-                    // Phone
-                    Text(
-                      'Phone',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: _secondaryTextColor,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    TextField(
-                      controller: phoneCtrl,
-                      keyboardType: TextInputType.phone,
-                      style: GoogleFonts.nunito(
-                        color: Colors.white,
-                        fontSize: 14.sp,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'e.g. +1 555 123 4567',
-                        hintStyle: GoogleFonts.nunito(
-                          color: _secondaryTextColor,
-                        ),
-                        filled: true,
-                        fillColor: AppColors.card,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 14.w,
-                          vertical: 12.h,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.1),
+                          SizedBox(height: 16.h),
+                          _buildProfileFormField(
+                            controller: controllers['fullName']!,
+                            label: 'Full name',
+                            icon: Icons.person_outline_rounded,
+                            required: true,
+                            validator: (value) =>
+                                (value?.trim().isEmpty ?? true)
+                                ? 'Enter your full name'
+                                : null,
                           ),
-                        ),
+                          SizedBox(height: 12.h),
+                          _buildProfileFormField(
+                            controller: controllers['specialty']!,
+                            label: 'Medical specialty',
+                            icon: Icons.medical_services_outlined,
+                          ),
+                          SizedBox(height: 12.h),
+                          _buildProfileFormField(
+                            controller: controllers['hospitalClinic']!,
+                            label: 'Hospital / clinic',
+                            icon: Icons.local_hospital_outlined,
+                          ),
+                          SizedBox(height: 12.h),
+                          _buildProfileFormField(
+                            controller: controllers['phone']!,
+                            label: 'Phone number',
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
+                            validator: (value) {
+                              final phone = value?.trim() ?? '';
+                              if (phone.isEmpty) return null;
+                              if (!RegExp(r'^[+() .\-\d]+$').hasMatch(phone) ||
+                                  phone.replaceAll(RegExp(r'\D'), '').length <
+                                      7 ||
+                                  phone.replaceAll(RegExp(r'\D'), '').length >
+                                      15) {
+                                return 'Enter a valid phone number';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildProfileFormField(
+                                  controller: controllers['city']!,
+                                  label: 'City',
+                                  icon: Icons.location_city_outlined,
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: _buildProfileFormField(
+                                  controller: controllers['country']!,
+                                  label: 'Country',
+                                  icon: Icons.public_outlined,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.h),
+                          _buildProfileFormField(
+                            controller: controllers['licenseNumber']!,
+                            label: 'Medical license number',
+                            icon: Icons.badge_outlined,
+                          ),
+                          SizedBox(height: 12.h),
+                          DropdownButtonFormField<String?>(
+                            initialValue: selectedGender,
+                            dropdownColor: AppColors.card,
+                            style: GoogleFonts.nunito(color: Colors.white),
+                            decoration: _profileInputDecoration(
+                              label: 'Gender (optional)',
+                              icon: Icons.wc_outlined,
+                            ),
+                            items: [
+                              DropdownMenuItem<String?>(
+                                value: null,
+                                child: const Text('Not specified'),
+                              ),
+                              if (selectedGender != null &&
+                                  !const [
+                                    'Female',
+                                    'Male',
+                                    'Other',
+                                  ].contains(selectedGender))
+                                DropdownMenuItem<String?>(
+                                  value: selectedGender,
+                                  child: Text(selectedGender!),
+                                ),
+                              const DropdownMenuItem<String?>(
+                                value: 'Female',
+                                child: Text('Female'),
+                              ),
+                              const DropdownMenuItem<String?>(
+                                value: 'Male',
+                                child: Text('Male'),
+                              ),
+                              const DropdownMenuItem<String?>(
+                                value: 'Other',
+                                child: Text('Other'),
+                              ),
+                            ],
+                            onChanged: (value) =>
+                                setDialogState(() => selectedGender = value),
+                          ),
+                          if (saveError != null) ...[
+                            SizedBox(height: 12.h),
+                            Text(
+                              saveError!,
+                              style: GoogleFonts.nunito(
+                                color: AppColors.orange,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.nunito(color: _secondaryTextColor),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.dark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                actions: [
+                  TextButton(
+                    onPressed: _isSavingProfile
+                        ? null
+                        : () => Navigator.of(dialogContext).pop(false),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.nunito(color: _secondaryTextColor),
                     ),
                   ),
-                  child: Text(
-                    'Save Details',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.dark,
+                  ElevatedButton(
+                    onPressed: _isSavingProfile
+                        ? null
+                        : () async {
+                            if (!mounted || _isSavingProfile) return;
+                            if (!(formKey.currentState?.validate() ?? false)) {
+                              return;
+                            }
+                            setState(() => _isSavingProfile = true);
+                            setDialogState(() => saveError = null);
+                            var saveSucceeded = false;
+                            try {
+                              await ref
+                                  .read(firestoreServiceProvider)
+                                  .updateDoctorProfile(
+                                    fullName: controllers['fullName']!.text,
+                                    gender: selectedGender,
+                                    phone: controllers['phone']!.text,
+                                    specialty: controllers['specialty']!.text,
+                                    hospitalClinic:
+                                        controllers['hospitalClinic']!.text,
+                                    city: controllers['city']!.text,
+                                    country: controllers['country']!.text,
+                                    licenseNumber:
+                                        controllers['licenseNumber']!.text,
+                                  );
+                              await _loadProfile();
+                              saveSucceeded = true;
+                            } catch (error, stackTrace) {
+                              debugPrint('PROFILE SAVE ERROR: $error');
+                              debugPrintStack(stackTrace: stackTrace);
+                              final message =
+                                  error is FirebaseException &&
+                                      error.code == 'permission-denied'
+                                  ? 'You do not have permission to update this profile.'
+                                  : 'Could not save your profile. Please check your connection and try again.';
+                              if (dialogContext.mounted) {
+                                setDialogState(() => saveError = message);
+                              } else if (mounted) {
+                                _showProfileImageError(message);
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isSavingProfile = false);
+                              }
+                              if (dialogContext.mounted) {
+                                setDialogState(() => _isSavingProfile = false);
+                              }
+                            }
+                            if (saveSucceeded && dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop(true);
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.dark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                     ),
+                    child: _isSavingProfile
+                        ? SizedBox(
+                            width: 18.w,
+                            height: 18.w,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.dark,
+                            ),
+                          )
+                        : Text(
+                            'Save Changes',
+                            style: GoogleFonts.nunito(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                   ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-
-    if (saved == true) {
-      await ref
-          .read(firestoreServiceProvider)
-          .updateDoctorProfile(
-            fullName: nameCtrl.text.trim(),
-            gender: selectedGender,
-            phone: phoneCtrl.text.trim(),
+                ],
+              );
+            },
           );
-      await _loadProfile();
+        },
+      );
+
+      if (saved == true && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Profile updated successfully',
+              style: GoogleFonts.nunito(),
+            ),
+            backgroundColor: AppColors.card,
+          ),
+        );
+      }
+    } finally {
+      while (editDialogContext?.mounted ?? false) {
+        await WidgetsBinding.instance.endOfFrame;
+      }
+      for (final controller in controllers.values) {
+        controller.dispose();
+      }
     }
+  }
+
+  Widget _buildProfileFormField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool required = false,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      textCapitalization: TextCapitalization.words,
+      style: GoogleFonts.nunito(color: Colors.white, fontSize: 14.sp),
+      decoration: _profileInputDecoration(
+        label: required ? '$label *' : label,
+        icon: icon,
+      ),
+      validator: validator,
+    );
+  }
+
+  InputDecoration _profileInputDecoration({
+    required String label,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: GoogleFonts.nunito(color: _secondaryTextColor),
+      prefixIcon: Icon(icon, color: AppColors.primary, size: 20.sp),
+      filled: true,
+      fillColor: AppColors.card,
+      contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: const BorderSide(color: AppColors.primary),
+      ),
+    );
   }
 
   @override
@@ -443,16 +623,20 @@ class _UserProfileModalState extends ConsumerState<UserProfileModal> {
     final user = authService.currentUser;
     final streamedProfile = ref.watch(userProfileStreamProvider).value;
     final activeProfile = _profile ?? streamedProfile;
+    final profileDisplayName = activeProfile?.displayName.trim();
+    final emailAlias = user?.email?.split('@').first;
+    final profileFullName = activeProfile?.fullName?.trim();
 
-    final displayName = activeProfile?.fullName?.isNotEmpty == true
-        ? activeProfile!.fullName!
-        : (activeProfile?.displayName.isNotEmpty == true
-              ? activeProfile!.displayName
-              : (user?.displayName?.isNotEmpty == true
-                    ? user!.displayName!
-                    : (user?.email?.isNotEmpty == true
-                          ? user!.email!.split('@').first
-                          : 'Medical Officer')));
+    final displayName =
+        profileFullName?.isNotEmpty == true && profileFullName != emailAlias
+        ? profileFullName!
+        : (user?.displayName?.trim().isNotEmpty == true
+              ? user!.displayName!.trim()
+              : (profileDisplayName?.isNotEmpty == true &&
+                        profileDisplayName != emailAlias &&
+                        profileDisplayName != 'User'
+                    ? profileDisplayName!
+                    : 'Medical Officer'));
     final email = user?.email ?? 'No email associated';
 
     // Priority:
@@ -700,70 +884,125 @@ class _UserProfileModalState extends ConsumerState<UserProfileModal> {
 
               SizedBox(height: 18.h),
 
-              // ── DOCTOR REPORT INFORMATION CARD ────────────────────────────
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(14.w),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
+              _buildProfileSection(
+                title: 'Personal information',
+                icon: Icons.person_outline_rounded,
+                trailing: TextButton.icon(
+                  onPressed: _openEditDoctorDialog,
+                  icon: Icon(Icons.edit_outlined, size: 16.sp),
+                  label: Text('Edit profile', style: GoogleFonts.nunito()),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
                   ),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'DOCTOR REPORT CREDENTIALS',
-                          style: GoogleFonts.nunito(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w800,
-                            color: _secondaryTextColor,
-                            letterSpacing: 0.5,
-                          ),
+                    if (_isLoadingProfile && activeProfile == null)
+                      const Padding(
+                        padding: EdgeInsets.all(18),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                          strokeWidth: 2,
                         ),
-                        GestureDetector(
-                          onTap: _openEditDoctorDialog,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.edit_rounded,
-                                size: 12.sp,
-                                color: AppColors.primary,
-                              ),
-                              SizedBox(width: 4.w),
-                              Text(
-                                'Edit',
+                      )
+                    else if (_profileLoadError != null && activeProfile == null)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _profileLoadError!,
                                 style: GoogleFonts.nunito(
-                                  fontSize: 11.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
+                                  color: AppColors.orange,
+                                  fontSize: 12.sp,
                                 ),
                               ),
-                            ],
+                            ),
+                            IconButton(
+                              tooltip: 'Retry loading profile',
+                              onPressed: _loadProfile,
+                              icon: const Icon(
+                                Icons.refresh_rounded,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else ...[
+                      _buildDoctorDetail('Full name', displayName),
+                      _buildDoctorDetail('Email', email, singleLineValue: true),
+                      _buildDoctorDetail(
+                        'Medical specialty',
+                        activeProfile?.specialty,
+                      ),
+                      _buildDoctorDetail(
+                        'Hospital / clinic',
+                        activeProfile?.hospitalClinic,
+                      ),
+                      _buildDoctorDetail('Phone number', activeProfile?.phone),
+                      _buildDoctorDetail(
+                        'Location',
+                        [activeProfile?.city, activeProfile?.country]
+                            .whereType<String>()
+                            .map((value) => value.trim())
+                            .where((value) => value.isNotEmpty)
+                            .join(', '),
+                      ),
+                      _buildDoctorDetail(
+                        'Medical license',
+                        activeProfile?.licenseNumber,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 14.h),
+
+              _buildProfileSection(
+                title: 'Account security',
+                icon: Icons.shield_outlined,
+                child: Column(
+                  children: [
+                    _buildDoctorDetail('Sign-in method', providerName),
+                    _buildDoctorDetail(
+                      'Email verification',
+                      user?.emailVerified == true ? 'Verified' : 'Not verified',
+                      valueColor: user?.emailVerified == true
+                          ? AppColors.primary
+                          : _secondaryTextColor,
+                    ),
+                    if (user?.providerData.any(
+                          (provider) => provider.providerId == 'password',
+                        ) ==
+                        true)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: _isSendingPasswordReset
+                              ? null
+                              : _sendPasswordReset,
+                          icon: _isSendingPasswordReset
+                              ? SizedBox(
+                                  width: 16.w,
+                                  height: 16.w,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : const Icon(Icons.lock_reset_outlined),
+                          label: Text(
+                            'Send password reset email',
+                            style: GoogleFonts.nunito(),
+                          ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 10.h),
-                    _buildDoctorDetail(
-                      'Full Name',
-                      activeProfile?.fullName ?? displayName,
-                    ),
-                    SizedBox(height: 6.h),
-                    _buildDoctorDetail(
-                      'Gender',
-                      activeProfile?.gender ?? 'Not Specified',
-                    ),
-                    SizedBox(height: 6.h),
-                    _buildDoctorDetail(
-                      'Phone',
-                      _formatPhoneNumber(activeProfile?.phone),
-                    ),
+                      ),
                   ],
                 ),
               ),
@@ -911,42 +1150,151 @@ class _UserProfileModalState extends ConsumerState<UserProfileModal> {
     );
   }
 
-  Widget _buildDoctorDetail(String label, String value) {
-    return Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      spacing: 8.w,
-      runSpacing: 2.h,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.nunito(
-            fontSize: 12.sp,
-            color: _secondaryTextColor,
-            fontWeight: FontWeight.w600,
+  Widget _buildProfileSection({
+    required String title,
+    required IconData icon,
+    required Widget child,
+    Widget? trailing,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.primary, size: 19.sp),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.nunito(
+                    color: Colors.white,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              ?trailing,
+            ],
           ),
-        ),
-        Text(
-          value,
-          style: GoogleFonts.nunito(
-            fontSize: 12.sp,
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+          SizedBox(height: 10.h),
+          child,
+        ],
+      ),
     );
   }
 
-  String _formatPhoneNumber(String? phone) {
-    final value = phone?.trim() ?? '';
-    if (value.isEmpty) return 'Not Specified';
-    if (!value.startsWith('+212')) return value;
+  Widget _buildDoctorDetail(
+    String label,
+    String? value, {
+    Color valueColor = Colors.white,
+    bool singleLineValue = false,
+  }) {
+    final detailValue = value?.trim();
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (singleLineValue)
+            Expanded(
+              flex: 1,
+              child: Text(
+                label,
+                style: GoogleFonts.nunito(
+                  fontSize: 12.sp,
+                  color: _secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.nunito(
+                  fontSize: 12.sp,
+                  color: _secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          SizedBox(width: singleLineValue ? 8.w : 12.w),
+          if (singleLineValue)
+            Expanded(
+              flex: 2,
+              child: Text(
+                detailValue == null || detailValue.isEmpty
+                    ? 'Not provided'
+                    : detailValue,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                textAlign: TextAlign.right,
+                style: GoogleFonts.nunito(
+                  fontSize: 12.sp,
+                  color: valueColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            )
+          else
+            Flexible(
+              child: Text(
+                detailValue == null || detailValue.isEmpty
+                    ? 'Not provided'
+                    : detailValue,
+                textAlign: TextAlign.right,
+                style: GoogleFonts.nunito(
+                  fontSize: 12.sp,
+                  color: valueColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
-    final nationalNumber = value.substring(4).replaceAll(RegExp(r'\D'), '');
-    if (nationalNumber.length <= 3) return '+212 $nationalNumber'.trim();
+  Future<void> _sendPasswordReset() async {
+    final email = ref.read(authServiceProvider).currentUser?.email;
+    if (email == null || email.isEmpty) {
+      _showProfileImageError(
+        'No account email is available for password reset.',
+      );
+      return;
+    }
 
-    return '+212 ${nationalNumber.substring(0, 3)}-'
-        '${nationalNumber.substring(3)}';
+    setState(() => _isSendingPasswordReset = true);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Password reset email sent to $email',
+              style: GoogleFonts.nunito(),
+            ),
+            backgroundColor: AppColors.card,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (error) {
+      _showProfileImageError(
+        error.message ??
+            'Could not send a password reset email (${error.code}).',
+      );
+    } finally {
+      if (mounted) setState(() => _isSendingPasswordReset = false);
+    }
   }
 
   Widget _buildInitialAvatar(String name) {

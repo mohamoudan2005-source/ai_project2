@@ -8,6 +8,11 @@ class UserProfile {
   final String? username;
   final String? gender;
   final String? phone;
+  final String? specialty;
+  final String? hospitalClinic;
+  final String? city;
+  final String? country;
+  final String? licenseNumber;
   final String email;
   final String? profileImage;
   final String photoURL;
@@ -22,6 +27,11 @@ class UserProfile {
     this.username,
     this.gender,
     this.phone,
+    this.specialty,
+    this.hospitalClinic,
+    this.city,
+    this.country,
+    this.licenseNumber,
     required this.email,
     this.profileImage,
     required this.photoURL,
@@ -78,6 +88,11 @@ class UserProfile {
       username: map['username'] as String?,
       gender: map['gender'] as String?,
       phone: map['phone'] as String?,
+      specialty: map['specialty'] as String?,
+      hospitalClinic: map['hospitalClinic'] as String?,
+      city: map['city'] as String?,
+      country: map['country'] as String?,
+      licenseNumber: map['licenseNumber'] as String?,
       email: map['email'] as String? ?? '',
       profileImage: map['profileImage'] as String?,
       photoURL: map['photoURL'] as String? ?? '',
@@ -104,6 +119,11 @@ class UserProfile {
       if (username != null) 'username': username,
       if (gender != null) 'gender': gender,
       if (phone != null) 'phone': phone,
+      if (specialty != null) 'specialty': specialty,
+      if (hospitalClinic != null) 'hospitalClinic': hospitalClinic,
+      if (city != null) 'city': city,
+      if (country != null) 'country': country,
+      if (licenseNumber != null) 'licenseNumber': licenseNumber,
       'email': email,
       if (profileImage != null) 'profileImage': profileImage,
       'photoURL': photoURL,
@@ -122,6 +142,11 @@ class UserProfile {
     String? username,
     String? gender,
     String? phone,
+    String? specialty,
+    String? hospitalClinic,
+    String? city,
+    String? country,
+    String? licenseNumber,
     String? email,
     String? profileImage,
     String? photoURL,
@@ -136,6 +161,11 @@ class UserProfile {
       username: username ?? this.username,
       gender: gender ?? this.gender,
       phone: phone ?? this.phone,
+      specialty: specialty ?? this.specialty,
+      hospitalClinic: hospitalClinic ?? this.hospitalClinic,
+      city: city ?? this.city,
+      country: country ?? this.country,
+      licenseNumber: licenseNumber ?? this.licenseNumber,
       email: email ?? this.email,
       profileImage: profileImage ?? this.profileImage,
       photoURL: photoURL ?? this.photoURL,

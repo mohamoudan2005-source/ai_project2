@@ -83,6 +83,55 @@ void main() {
       },
     );
 
+    test(
+      'UserProfile reads legacy documents without optional doctor fields',
+      () {
+        final profile = UserProfile.fromMap({
+          'uid': 'doctor_legacy',
+          'displayName': 'Dr. Alex Morgan',
+          'fullName': 'Dr. Alex Morgan',
+          'email': 'alex@example.org',
+          'photoURL': '',
+          'provider': 'password',
+        });
+
+        expect(profile.fullName, 'Dr. Alex Morgan');
+        expect(profile.specialty, isNull);
+        expect(profile.hospitalClinic, isNull);
+        expect(profile.city, isNull);
+        expect(profile.country, isNull);
+        expect(profile.licenseNumber, isNull);
+      },
+    );
+
+    test('UserProfile persists optional doctor details when provided', () {
+      final profile = UserProfile(
+        uid: 'doctor_123',
+        displayName: 'Dr. Sam Lee',
+        fullName: 'Dr. Sam Lee',
+        gender: 'Other',
+        phone: '+1 555 123 4567',
+        specialty: 'Pulmonology',
+        hospitalClinic: 'North Clinic',
+        city: 'Boston',
+        country: 'United States',
+        licenseNumber: 'MED-1234',
+        email: 'sam@example.org',
+        photoURL: '',
+        provider: 'password',
+      );
+
+      final map = profile.toMap();
+      final restored = UserProfile.fromMap(map);
+
+      expect(restored.specialty, 'Pulmonology');
+      expect(restored.hospitalClinic, 'North Clinic');
+      expect(restored.city, 'Boston');
+      expect(restored.country, 'United States');
+      expect(restored.licenseNumber, 'MED-1234');
+      expect(restored.gender, 'Other');
+    });
+
     test('Display priority resolves custom photo over provider photo', () {
       const customPhotoUrl =
           'https://storage.googleapis.com/custom_profile.jpg';
