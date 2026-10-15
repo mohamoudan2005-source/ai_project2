@@ -210,6 +210,7 @@ mixin _$PredictionHistoryItem {
   DateTime get completedAt => throw _privateConstructorUsedError;
   String get photoPath => throw _privateConstructorUsedError;
   String? get photoURL => throw _privateConstructorUsedError;
+  bool get classificationKnown => throw _privateConstructorUsedError;
 
   /// Create a copy of PredictionHistoryItem
   /// with the given fields replaced by the non-null parameter values.
@@ -237,6 +238,7 @@ abstract class $PredictionHistoryItemCopyWith<$Res> {
     DateTime completedAt,
     String photoPath,
     String? photoURL,
+    bool classificationKnown,
   });
 }
 
@@ -269,6 +271,7 @@ class _$PredictionHistoryItemCopyWithImpl<
     Object? completedAt = null,
     Object? photoPath = null,
     Object? photoURL = freezed,
+    Object? classificationKnown = null,
   }) {
     return _then(
       _value.copyWith(
@@ -316,6 +319,10 @@ class _$PredictionHistoryItemCopyWithImpl<
                 ? _value.photoURL
                 : photoURL // ignore: cast_nullable_to_non_nullable
                       as String?,
+            classificationKnown: null == classificationKnown
+                ? _value.classificationKnown
+                : classificationKnown // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -343,6 +350,7 @@ abstract class _$$PredictionHistoryItemImplCopyWith<$Res>
     DateTime completedAt,
     String photoPath,
     String? photoURL,
+    bool classificationKnown,
   });
 }
 
@@ -372,6 +380,7 @@ class __$$PredictionHistoryItemImplCopyWithImpl<$Res>
     Object? completedAt = null,
     Object? photoPath = null,
     Object? photoURL = freezed,
+    Object? classificationKnown = null,
   }) {
     return _then(
       _$PredictionHistoryItemImpl(
@@ -419,6 +428,10 @@ class __$$PredictionHistoryItemImplCopyWithImpl<$Res>
             ? _value.photoURL
             : photoURL // ignore: cast_nullable_to_non_nullable
                   as String?,
+        classificationKnown: null == classificationKnown
+            ? _value.classificationKnown
+            : classificationKnown // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -439,6 +452,7 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
     required this.completedAt,
     this.photoPath = '',
     this.photoURL,
+    this.classificationKnown = true,
   }) : super._();
 
   @override
@@ -464,10 +478,13 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
   final String photoPath;
   @override
   final String? photoURL;
+  @override
+  @JsonKey()
+  final bool classificationKnown;
 
   @override
   String toString() {
-    return 'PredictionHistoryItem(id: $id, patientName: $patientName, patientAge: $patientAge, patientGender: $patientGender, patientPhone: $patientPhone, label: $label, probability: $probability, isPneumonia: $isPneumonia, completedAt: $completedAt, photoPath: $photoPath, photoURL: $photoURL)';
+    return 'PredictionHistoryItem(id: $id, patientName: $patientName, patientAge: $patientAge, patientGender: $patientGender, patientPhone: $patientPhone, label: $label, probability: $probability, isPneumonia: $isPneumonia, completedAt: $completedAt, photoPath: $photoPath, photoURL: $photoURL, classificationKnown: $classificationKnown)';
   }
 
   @override
@@ -494,7 +511,9 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
             (identical(other.photoPath, photoPath) ||
                 other.photoPath == photoPath) &&
             (identical(other.photoURL, photoURL) ||
-                other.photoURL == photoURL));
+                other.photoURL == photoURL) &&
+            (identical(other.classificationKnown, classificationKnown) ||
+                other.classificationKnown == classificationKnown));
   }
 
   @override
@@ -511,6 +530,7 @@ class _$PredictionHistoryItemImpl extends _PredictionHistoryItem {
     completedAt,
     photoPath,
     photoURL,
+    classificationKnown,
   );
 
   /// Create a copy of PredictionHistoryItem
@@ -539,6 +559,7 @@ abstract class _PredictionHistoryItem extends PredictionHistoryItem {
     required final DateTime completedAt,
     final String photoPath,
     final String? photoURL,
+    final bool classificationKnown,
   }) = _$PredictionHistoryItemImpl;
   const _PredictionHistoryItem._() : super._();
 
@@ -564,6 +585,8 @@ abstract class _PredictionHistoryItem extends PredictionHistoryItem {
   String get photoPath;
   @override
   String? get photoURL;
+  @override
+  bool get classificationKnown;
 
   /// Create a copy of PredictionHistoryItem
   /// with the given fields replaced by the non-null parameter values.

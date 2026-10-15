@@ -55,7 +55,9 @@ class MissionCard extends StatelessWidget {
                         ? item.patientName!
                         : "Examination #${index + 1}",
                     style: AppTextStyles.headingSmall.copyWith(
-                      color: item.isPneumonia
+                      color: !item.classificationKnown
+                          ? AppColors.textSub
+                          : item.isPneumonia
                           ? AppColors.orange
                           : AppColors.textMain,
                       fontSize: 15.sp,
@@ -69,7 +71,9 @@ class MissionCard extends StatelessWidget {
                     style: GoogleFonts.nunito(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
-                      color: item.isPneumonia
+                      color: !item.classificationKnown
+                          ? AppColors.textSub
+                          : item.isPneumonia
                           ? AppColors.orange
                           : AppColors.primary,
                     ),

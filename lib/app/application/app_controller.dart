@@ -28,28 +28,27 @@ class AppController extends StateNotifier<AppState> {
     state = state.copyWith(isHistoryLoading: true, historyLoadError: null);
     try {
       final results = await Future.wait([
-        _storageService.loadHistory(),
+        _storageService.loadAllCases(),
         _storageService.loadStreak(),
       ]);
-
-      List<PredictionHistoryItem> totalCases =
-          results[0] as List<PredictionHistoryItem>;
-      List<PredictionHistoryItem> normalCases = totalCases
-          .where((item) => !item.isPneumonia)
-          .toList();
-      List<PredictionHistoryItem> pneumoniaCases = totalCases
-          .where((item) => item.isPneumonia)
-          .toList();
+      final history = results[0] as List<PredictionHistoryItem>;
+      final normalCases = history
+          .where((item) => item.classificationKnown && !item.isPneumonia)
+          .length;
+      final pneumoniaCases = history
+          .where((item) => item.classificationKnown && item.isPneumonia)
+          .length;
       state = state.copyWith(
-        history: totalCases,
-        totalCases: totalCases.length,
-        normalCases: normalCases.length,
-        pneumoniaCases: pneumoniaCases.length,
+        history: history,
+        totalCases: history.length,
+        normalCases: normalCases,
+        pneumoniaCases: pneumoniaCases,
         streak: results[1] as int,
         isHistoryLoading: false,
         historyLoadError: null,
       );
-    } catch (_) {
+    } catch (error) {
+      debugPrint('AppController: unable to load examination summary: $error');
       state = state.copyWith(
         isHistoryLoading: false,
         historyLoadError: 'Unable to load examination records.',
@@ -192,12 +191,6 @@ class AppController extends StateNotifier<AppState> {
     if (isXray) {
       final newHistory = [result, ...state.history];
       final newStreak = state.streak + 1;
-      List<PredictionHistoryItem> normalCases = newHistory
-          .where((item) => !item.isPneumonia)
-          .toList();
-      List<PredictionHistoryItem> pneumoniaCases = newHistory
-          .where((item) => item.isPneumonia)
-          .toList();
 
       await Future.wait([
         _storageService.saveCase(result, explicitCaseId: caseId),
@@ -207,9 +200,13 @@ class AppController extends StateNotifier<AppState> {
       state = state.copyWith(
         history: newHistory,
         streak: newStreak,
-        totalCases: newHistory.length,
-        normalCases: normalCases.length,
-        pneumoniaCases: pneumoniaCases.length,
+        totalCases: state.totalCases + 1,
+        normalCases:
+            state.normalCases +
+            (result.classificationKnown && !result.isPneumonia ? 1 : 0),
+        pneumoniaCases:
+            state.pneumoniaCases +
+            (result.classificationKnown && result.isPneumonia ? 1 : 0),
         currentCaseId: caseId,
         currentPhotoURL: photoURL,
         currentCase: result,

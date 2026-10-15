@@ -140,7 +140,11 @@ class _ExaminationDetailScreenState
     final probabilityPct = (item.probability * 100).toStringAsFixed(2);
     final dateFormat = DateFormat('MMMM dd, yyyy - hh:mm a');
     final formattedDate = dateFormat.format(item.completedAt);
-    final resultColor = isPneumonia ? AppColors.orange : AppColors.primary;
+    final resultColor = !item.classificationKnown
+        ? AppColors.textSub
+        : isPneumonia
+        ? AppColors.orange
+        : AppColors.primary;
 
     return Scaffold(
       backgroundColor: AppColors.dark,
@@ -246,13 +250,24 @@ class _ExaminationDetailScreenState
                     ),
                     SizedBox(height: 10.h),
                     Text(
-                      isPneumonia
-                          ? 'Consistent with signs of pneumonia. Clinical correlation advised.'
-                          : 'No signs of pneumonia detected on this chest radiograph.',
+                      !item.classificationKnown
+                          ? 'The outcome for this historical examination is unavailable or unrecognized.'
+                          : isPneumonia
+                          ? 'The AI model detected features associated with pneumonia. Clinical correlation is advised.'
+                          : 'The AI model did not detect features associated with pneumonia in this image.',
                       style: GoogleFonts.nunito(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSub,
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      'This AI-generated probability is decision support, not a medical diagnosis.',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textDead,
                       ),
                     ),
                     SizedBox(height: 8.h),

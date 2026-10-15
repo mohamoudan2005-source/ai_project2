@@ -10,9 +10,16 @@ import 'package:ai_project/utils/app_theme.dart';
 /// (and results). Defaults to the current month, with arrows to browse
 /// other months. Built entirely from AppTheme tokens.
 class MonthlyStats extends StatefulWidget {
-  const MonthlyStats({super.key, required this.history});
+  const MonthlyStats({
+    super.key,
+    required this.history,
+    this.isLoading = false,
+    this.error,
+  });
 
   final List<PredictionHistoryItem> history;
+  final bool isLoading;
+  final String? error;
 
   @override
   State<MonthlyStats> createState() => _MonthlyStatsState();
@@ -48,6 +55,15 @@ class _MonthlyStatsState extends State<MonthlyStats> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.history.isEmpty && widget.isLoading) {
+      return const _MonthlyHistoryMessage(
+        message: 'Loading examination records...',
+      );
+    }
+    if (widget.history.isEmpty && widget.error != null) {
+      return _MonthlyHistoryMessage(message: widget.error!);
+    }
+
     final Map<int, List<PredictionHistoryItem>> itemsByDay = {};
     for (final item in widget.history) {
       final d = item.completedAt;
@@ -111,6 +127,26 @@ class _MonthlyStatsState extends State<MonthlyStats> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MonthlyHistoryMessage extends StatelessWidget {
+  const _MonthlyHistoryMessage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardPad,
+      decoration: AppDecorations.card,
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: AppTextStyles.caption.copyWith(color: AppColors.textSub),
+      ),
     );
   }
 }
@@ -415,7 +451,11 @@ class _DayDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = item.isPneumonia ? AppColors.orange : AppColors.primary;
+    final color = !item.classificationKnown
+        ? AppColors.textSub
+        : item.isPneumonia
+        ? AppColors.orange
+        : AppColors.primary;
 
     return Container(
       margin: EdgeInsets.only(bottom: AppSpacing.sm),

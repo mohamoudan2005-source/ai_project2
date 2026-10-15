@@ -1,13 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ai_project/services/crypto_service.dart';
 import 'package:ai_project/services/firestore_service.dart';
 
 void main() {
   group('FirestoreService.updateDoctorProfile', () {
     test('writes all fields to the authenticated user document', () async {
       final firestore = _CapturingFirestore();
-      final service = _service(firestore);
+      final crypto = CryptoService();
+      final service = _service(firestore, crypto);
 
       await service.updateDoctorProfile(
         fullName: ' Dr. Ada Lovelace ',
@@ -22,7 +24,7 @@ void main() {
 
       expect(firestore.collectionPath, 'users');
       expect(firestore.documentPath, 'doctor-42');
-      expect(firestore.documentData, {
+      for (final entry in {
         'fullName': 'Dr. Ada Lovelace',
         'displayName': 'Dr. Ada Lovelace',
         'gender': 'Female',
@@ -32,8 +34,16 @@ void main() {
         'city': 'Boston',
         'country': 'United States',
         'licenseNumber': 'MED-1234',
-        'updatedAt': isA<FieldValue>(),
-      });
+      }.entries) {
+        expect(
+          await crypto.decryptString(
+            'doctor-42',
+            firestore.documentData![entry.key] as String,
+          ),
+          entry.value,
+        );
+      }
+      expect(firestore.documentData!['updatedAt'], isA<FieldValue>());
       expect(firestore.setOptions?.merge, isTrue);
       expect(firestore.documentData!.containsKey('email'), isFalse);
     });
@@ -42,14 +52,21 @@ void main() {
       'saves one populated optional field without null Firestore values',
       () async {
         final firestore = _CapturingFirestore();
-        final service = _service(firestore);
+        final crypto = CryptoService();
+        final service = _service(firestore, crypto);
 
         await service.updateDoctorProfile(
           fullName: 'Dr. Ada Lovelace',
           specialty: 'Cardiology',
         );
 
-        expect(firestore.documentData!['specialty'], 'Cardiology');
+        expect(
+          await crypto.decryptString(
+            'doctor-42',
+            firestore.documentData!['specialty'] as String,
+          ),
+          'Cardiology',
+        );
         for (final key in [
           'gender',
           'phone',
@@ -110,10 +127,14 @@ void main() {
   });
 }
 
-FirestoreService _service(_CapturingFirestore firestore) {
+FirestoreService _service(
+  _CapturingFirestore firestore, [
+  CryptoService? crypto,
+]) {
   return FirestoreService(
     firestore: firestore,
     auth: _CapturingAuth(_CapturingUser('doctor-42')),
+    crypto: crypto,
   );
 }
 

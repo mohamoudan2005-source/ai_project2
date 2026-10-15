@@ -6,6 +6,31 @@ import 'package:ai_project/app/models/prediction_result.dart';
 import 'package:ai_project/models/user_profile.dart';
 import 'package:ai_project/services/crypto_service.dart';
 
+class ExaminationPage {
+  const ExaminationPage({
+    required this.records,
+    required this.totalCount,
+    required this.lastDocument,
+  });
+
+  final List<PredictionHistoryItem> records;
+  final int totalCount;
+  final DocumentSnapshot<Map<String, dynamic>>? lastDocument;
+}
+
+class ExaminationIndexStatus {
+  const ExaminationIndexStatus({
+    required this.totalCount,
+    required this.indexedCount,
+  });
+
+  final int totalCount;
+  final int indexedCount;
+
+  int get remainingCount => totalCount - indexedCount;
+  bool get isComplete => remainingCount == 0;
+}
+
 /// Reusable service handling all user-isolated Cloud Firestore operations.
 /// Every user document and subcollection path is dynamically scoped to
 /// `FirebaseAuth.instance.currentUser!.uid`.
@@ -16,6 +41,7 @@ class FirestoreService {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   final CryptoService _crypto;
+  bool _caseSearchIndexesReady = false;
 
   /// Profile fields stored encrypted. uid, username, email, provider, photo
   /// URLs, streaks and timestamps stay plaintext.
@@ -90,8 +116,8 @@ class FirestoreService {
     return out;
   }
 
-  /// Builds the Firestore document for a case. Only `id` and `completedAt`
-  /// stay readable; everything else goes into one encrypted `payload`.
+  /// Builds a case document with encrypted clinical data and separate
+  /// query metadata. Name prefixes are user-keyed HMACs, not plaintext.
   Future<Map<String, dynamic>> _encodeCase(
     Map<String, dynamic> json,
     String caseId,
@@ -99,13 +125,64 @@ class FirestoreService {
   ) async {
     final payload = Map<String, dynamic>.from(json)
       ..remove('id')
-      ..remove('completedAt');
+      ..remove('completedAt')
+      ..remove('classificationKnown');
+    final isPneumonia = json['classificationKnown'] == false
+        ? null
+        : _outcomeFromPayload(json);
+    if (isPneumonia == null) payload.remove('isPneumonia');
     return {
       'id': caseId,
       'completedAt': completedAt,
+      'patientNamePrefixes': await patientNameSearchTokens(
+        json['patientName'] as String?,
+      ),
+      'searchIndexVersion': 1,
+      if (isPneumonia case final outcome?) 'isPneumonia': outcome,
       'payload': await _crypto.encryptJson(currentUserId, payload),
       'encVersion': 1,
     };
+  }
+
+  static String normalizePatientNameSearch(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+  static bool? _outcomeFromPayload(Map<String, dynamic> data) {
+    final outcome = data['isPneumonia'];
+    if (outcome is bool) return outcome;
+    if (data.containsKey('isPneumonia')) return null;
+    return switch ((data['label'] as String?)?.trim().toLowerCase()) {
+      'normal' => false,
+      'pneumonia' => true,
+      _ => null,
+    };
+  }
+
+  Future<List<String>> patientNameSearchTokens(String? patientName) async {
+    final normalized = normalizePatientNameSearch(patientName ?? '');
+    if (normalized.isEmpty) return const [];
+
+    final prefixes = <String>{};
+    final terms = {normalized, ...normalized.split(RegExp(r'\s+'))};
+    for (final term in terms) {
+      final characters = term.runes.take(64).toList();
+      for (var length = 1; length <= characters.length; length++) {
+        prefixes.add(String.fromCharCodes(characters.take(length)));
+      }
+    }
+
+    final hashes = <String>[];
+    for (final prefix in prefixes) {
+      hashes.add(await _crypto.hashSearchValue(currentUserId, prefix));
+    }
+    return hashes;
+  }
+
+  Future<String> _patientSearchHash(String query) async {
+    final normalized = String.fromCharCodes(
+      normalizePatientNameSearch(query).runes.take(64),
+    );
+    return _crypto.hashSearchValue(currentUserId, normalized);
   }
 
   /// Reverses [_encodeCase]. Documents without a `payload` are legacy
@@ -298,22 +375,159 @@ class FirestoreService {
   /// Loads all examination cases for the current authenticated user from
   /// `users/{uid}/cases` sorted newest first.
   Future<List<PredictionHistoryItem>> loadCases() async {
-    final QuerySnapshot<Map<String, dynamic>> snapshot = await _casesRef.get();
+    return loadAllCases();
+  }
 
-    final List<PredictionHistoryItem> cases = [];
-    for (final doc in snapshot.docs) {
-      try {
+  /// Loads every record in bounded Firestore requests for complete historical
+  /// statistics. Payloads are decrypted before they are returned to callers.
+  /// Any unreadable record fails the operation so charts never present partial
+  /// historical results as complete.
+  Future<List<PredictionHistoryItem>> loadAllCases({
+    int batchSize = 100,
+  }) async {
+    final cases = <PredictionHistoryItem>[];
+    DocumentSnapshot<Map<String, dynamic>>? cursor;
+
+    while (true) {
+      Query<Map<String, dynamic>> query = _casesRef
+          .orderBy(FieldPath.documentId)
+          .limit(batchSize);
+      if (cursor != null) query = query.startAfterDocument(cursor);
+      final snapshot = await query.get();
+      for (final doc in snapshot.docs) {
         final data = await _decodeCase(doc.data(), doc.id);
         cases.add(PredictionHistoryItem.fromJson(data));
-      } catch (e) {
-        // One undecryptable/corrupt case must not break the whole list.
-        debugPrint('FirestoreService: skipping case ${doc.id}: $e');
       }
+      if (snapshot.docs.length < batchSize) break;
+      cursor = snapshot.docs.last;
+    }
+    cases.sort((a, b) {
+      final dateOrder = b.completedAt.compareTo(a.completedAt);
+      if (dateOrder != 0) return dateOrder;
+      return (a.id ?? '').compareTo(b.id ?? '');
+    });
+    return cases;
+  }
+
+  /// Fetches one server-paginated page. Search matches the beginning of any
+  /// patient-name word; arbitrary substring matching is not supported by
+  /// Firestore's native query operators.
+  Future<ExaminationPage> loadCasesPage({
+    required int pageSize,
+    required bool newestFirst,
+    String searchText = '',
+    bool? isPneumonia,
+    DocumentSnapshot<Map<String, dynamic>>? startAfter,
+  }) async {
+    await ensureCaseSearchIndexes();
+    Query<Map<String, dynamic>> baseQuery = _casesRef;
+    final normalizedSearch = normalizePatientNameSearch(searchText);
+    if (normalizedSearch.isNotEmpty) {
+      baseQuery = baseQuery.where(
+        'patientNamePrefixes',
+        arrayContains: await _patientSearchHash(normalizedSearch),
+      );
+    }
+    if (isPneumonia != null) {
+      baseQuery = baseQuery.where('isPneumonia', isEqualTo: isPneumonia);
+    }
+    Query<Map<String, dynamic>> query = baseQuery.orderBy(
+      'completedAt',
+      descending: newestFirst,
+    );
+    if (startAfter != null) query = query.startAfterDocument(startAfter);
+
+    final snapshots = await Future.wait([
+      query.limit(pageSize).get(),
+      baseQuery.count().get(),
+    ]);
+    final pageSnapshot = snapshots[0] as QuerySnapshot<Map<String, dynamic>>;
+    final countSnapshot = snapshots[1] as AggregateQuerySnapshot;
+    final records = <PredictionHistoryItem>[];
+    for (final document in pageSnapshot.docs) {
+      final data = await _decodeCase(document.data(), document.id);
+      records.add(PredictionHistoryItem.fromJson(data));
     }
 
-    // Sort descending by completion timestamp
-    cases.sort((a, b) => b.completedAt.compareTo(a.completedAt));
-    return cases;
+    return ExaminationPage(
+      records: records,
+      totalCount: countSnapshot.count ?? 0,
+      lastDocument: pageSnapshot.docs.isEmpty ? null : pageSnapshot.docs.last,
+    );
+  }
+
+  /// Backfills only the query metadata for legacy encrypted records, in
+  /// bounded batches. Called explicitly by the authenticated doctor.
+  Future<int> backfillCaseSearchIndexes() async {
+    const batchSize = 100;
+    Query<Map<String, dynamic>> query = _casesRef
+        .orderBy(FieldPath.documentId)
+        .limit(batchSize);
+    DocumentSnapshot<Map<String, dynamic>>? cursor;
+    var updatedCount = 0;
+
+    while (true) {
+      final page =
+          await (cursor == null ? query : query.startAfterDocument(cursor))
+              .get();
+      if (page.docs.isEmpty) break;
+
+      final batch = _firestore.batch();
+      var batchHasWrites = false;
+      for (final document in page.docs) {
+        final raw = document.data();
+        if (raw['searchIndexVersion'] == 1) {
+          continue;
+        }
+        final data = await _decodeCase(raw, document.id);
+        final metadata = <String, dynamic>{
+          'patientNamePrefixes': await patientNameSearchTokens(
+            data['patientName'] is String
+                ? data['patientName'] as String
+                : null,
+          ),
+          'searchIndexVersion': 1,
+        };
+        final outcome = _outcomeFromPayload(data);
+        if (outcome != null) metadata['isPneumonia'] = outcome;
+        batch.set(document.reference, metadata, SetOptions(merge: true));
+        updatedCount++;
+        batchHasWrites = true;
+      }
+      if (batchHasWrites) await batch.commit();
+
+      cursor = page.docs.last;
+      if (page.docs.length < batchSize) break;
+    }
+    return updatedCount;
+  }
+
+  Future<ExaminationIndexStatus> getCaseIndexStatus() async {
+    final counts = await Future.wait([
+      _casesRef.count().get(),
+      _casesRef.where('searchIndexVersion', isEqualTo: 1).count().get(),
+    ]);
+    return ExaminationIndexStatus(
+      totalCount: counts[0].count ?? 0,
+      indexedCount: counts[1].count ?? 0,
+    );
+  }
+
+  Future<ExaminationIndexStatus> ensureCaseSearchIndexes() async {
+    if (_caseSearchIndexesReady) return getCaseIndexStatus();
+
+    var status = await getCaseIndexStatus();
+    if (!status.isComplete) {
+      await backfillCaseSearchIndexes();
+      status = await getCaseIndexStatus();
+    }
+    if (!status.isComplete) {
+      throw StateError(
+        '${status.remainingCount} examination records still need search indexing.',
+      );
+    }
+    _caseSearchIndexesReady = true;
+    return status;
   }
 
   /// Saves a new examination case under `users/{uid}/cases/{caseId}`.
@@ -321,18 +535,13 @@ class FirestoreService {
     PredictionHistoryItem caseItem, {
     String? explicitCaseId,
   }) async {
-    print("START SAVE CASE");
     final String caseId = explicitCaseId ?? caseItem.id ?? const Uuid().v4();
-    try {
-      final data = await _encodeCase(
-        Map<String, dynamic>.from(caseItem.toJson()),
-        caseId,
-        Timestamp.fromDate(caseItem.completedAt),
-      );
-      await _casesRef.doc(caseId).set(data);
-    } catch (e) {
-      debugPrint('FirestoreService: failed to save case $caseId: $e');
-    }
+    final data = await _encodeCase(
+      Map<String, dynamic>.from(caseItem.toJson()),
+      caseId,
+      Timestamp.fromDate(caseItem.completedAt),
+    );
+    await _casesRef.doc(caseId).set(data);
     return caseId;
   }
 

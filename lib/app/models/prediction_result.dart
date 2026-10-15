@@ -38,6 +38,7 @@ class PredictionHistoryItem with _$PredictionHistoryItem {
     required DateTime completedAt,
     @Default('') String photoPath,
     String? photoURL,
+    @Default(true) bool classificationKnown,
   }) = _PredictionHistoryItem;
 
   const PredictionHistoryItem._();
@@ -48,6 +49,17 @@ class PredictionHistoryItem with _$PredictionHistoryItem {
         rawAge is num && rawAge.isFinite && rawAge == rawAge.truncateToDouble()
         ? rawAge.toInt()
         : null;
+    final rawOutcome = json['isPneumonia'];
+    final label = json['label'] as String? ?? 'Unknown';
+    final bool? outcome = rawOutcome is bool
+        ? rawOutcome
+        : json.containsKey('isPneumonia')
+        ? null
+        : switch (label.trim().toLowerCase()) {
+            'normal' => false,
+            'pneumonia' => true,
+            _ => null,
+          };
 
     return PredictionHistoryItem(
       id: json['id'] as String?,
@@ -57,9 +69,10 @@ class PredictionHistoryItem with _$PredictionHistoryItem {
           ? json['patientGender'] as String
           : null,
       patientPhone: json['patientPhone'] as String?,
-      label: json['label'] as String? ?? 'Unknown',
+      label: label,
       probability: (json['probability'] as num?)?.toDouble() ?? 0.0,
-      isPneumonia: json['isPneumonia'] as bool? ?? false,
+      isPneumonia: outcome ?? false,
+      classificationKnown: outcome != null,
       completedAt: _parseDateTime(json['completedAt']),
       photoPath: json['photoPath'] as String? ?? '',
       photoURL: json['photoURL'] as String?,
@@ -75,7 +88,7 @@ class PredictionHistoryItem with _$PredictionHistoryItem {
       'patientPhone': patientPhone ?? '',
       'label': label,
       'probability': probability,
-      'isPneumonia': isPneumonia,
+      if (classificationKnown) 'isPneumonia': isPneumonia,
       'completedAt': completedAt.toIso8601String(),
       'photoPath': photoPath,
       if (photoURL != null) 'photoURL': photoURL,

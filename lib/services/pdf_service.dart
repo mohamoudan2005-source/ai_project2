@@ -88,7 +88,9 @@ class PdfService {
     final isPneumonia = caseItem.isPneumonia;
 
     final primaryColor = PdfColor.fromHex('1A365D');
-    final accentColor = isPneumonia
+    final accentColor = !caseItem.classificationKnown
+        ? PdfColor.fromHex('4A5568')
+        : isPneumonia
         ? PdfColor.fromHex('C53030')
         : PdfColor.fromHex('2F855A');
     final darkText = PdfColor.fromHex('1A202C');

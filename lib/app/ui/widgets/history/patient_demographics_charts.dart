@@ -86,16 +86,16 @@ class PatientDemographicsCharts extends StatelessWidget {
         _ChartCard(
           child: _AgeDistributionChart(
             data: data,
-            isLoading: isLoading,
-            error: error,
+            isLoading: isLoading && data.totalRecordCount == 0,
+            error: data.totalRecordCount == 0 ? error : null,
           ),
         ),
         SizedBox(height: AppSpacing.lg),
         _ChartCard(
           child: _GenderDistributionChart(
             data: data,
-            isLoading: isLoading,
-            error: error,
+            isLoading: isLoading && data.totalRecordCount == 0,
+            error: data.totalRecordCount == 0 ? error : null,
           ),
         ),
       ],

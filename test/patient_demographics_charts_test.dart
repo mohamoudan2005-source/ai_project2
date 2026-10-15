@@ -61,6 +61,34 @@ void main() {
       expect(record.patientAge, isNull);
       expect(record.patientGender, isNull);
     });
+
+    test('does not classify malformed outcomes as Normal', () {
+      final record = PredictionHistoryItem.fromJson({
+        'label': 'Normal',
+        'probability': 0.9,
+        'isPneumonia': 'false',
+      });
+
+      expect(record.classificationKnown, isFalse);
+      expect(record.isPneumonia, isFalse);
+      expect(record.toJson(), isNot(contains('isPneumonia')));
+    });
+
+    test('recognizes legacy records from explicit classification labels', () {
+      final normal = PredictionHistoryItem.fromJson({
+        'label': ' normal ',
+        'probability': 0.9,
+      });
+      final pneumonia = PredictionHistoryItem.fromJson({
+        'label': 'PNEUMONIA',
+        'probability': 0.8,
+      });
+
+      expect(normal.classificationKnown, isTrue);
+      expect(normal.isPneumonia, isFalse);
+      expect(pneumonia.classificationKnown, isTrue);
+      expect(pneumonia.isPneumonia, isTrue);
+    });
   });
 
   testWidgets('shows loading messages for both charts', (tester) async {

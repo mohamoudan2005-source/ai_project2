@@ -122,6 +122,16 @@ class CryptoService {
     return utf8.decode(bytes);
   }
 
+  /// Produces a deterministic, user-scoped index token without exposing the
+  /// indexed value or a reusable unsalted hash to Firestore.
+  Future<String> hashSearchValue(String uid, String value) async {
+    final mac = await Hmac.sha256().calculateMac(
+      utf8.encode('$uid:$value'),
+      secretKey: _getKey(uid),
+    );
+    return base64UrlEncode(mac.bytes).replaceAll('=', '');
+  }
+
   // ── JSON MAPS ───────────────────────────────────────────────────────────────
 
   /// Encrypts a whole map as one string. Timestamps and DateTimes are stored
