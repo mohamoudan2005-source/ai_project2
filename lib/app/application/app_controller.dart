@@ -165,8 +165,7 @@ class AppController extends StateNotifier<AppState> {
     if (isXray && state.photoBase64 != null) {
       try {
         final imageBytes = base64Decode(state.photoBase64!);
-        photoURL = await _firebaseStorageService.uploadCaseImage(
-          caseId: caseId,
+        photoURL = await _firebaseStorageService.uploadProfileImage(
           imageBytes: imageBytes,
         );
       } catch (e) {

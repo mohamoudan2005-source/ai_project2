@@ -4,17 +4,40 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:ai_project/app/models/prediction_result.dart';
 import 'package:ai_project/models/user_profile.dart';
+import 'package:ai_project/services/crypto_service.dart';
 
 /// Reusable service handling all user-isolated Cloud Firestore operations.
 /// Every user document and subcollection path is dynamically scoped to
 /// `FirebaseAuth.instance.currentUser!.uid`.
+///
+/// Sensitive fields (profile PII and the full case payload) are encrypted on
+/// the client with AES-256-GCM before being written to Firestore.
 class FirestoreService {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final CryptoService _crypto;
 
-  FirestoreService({FirebaseFirestore? firestore, FirebaseAuth? auth})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _auth = auth ?? FirebaseAuth.instance;
+  /// Profile fields stored encrypted. uid, username, email, provider, photo
+  /// URLs, streaks and timestamps stay plaintext.
+  static const Set<String> _encryptedProfileFields = {
+    'fullName',
+    'displayName',
+    'gender',
+    'phone',
+    'specialty',
+    'hospitalClinic',
+    'city',
+    'country',
+    'licenseNumber',
+  };
+
+  FirestoreService({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+    CryptoService? crypto,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _auth = auth ?? FirebaseAuth.instance,
+       _crypto = crypto ?? CryptoService();
 
   /// Retrieves the current authenticated user's UID.
   /// Throws [StateError] if no user is signed in to prevent any unauthorized
@@ -40,6 +63,69 @@ class FirestoreService {
     return _userDocRef.collection('cases');
   }
 
+  // ── ENCRYPTION HELPERS ──────────────────────────────────────────────────────
+
+  /// Returns a copy of a profile map with encrypted fields decrypted.
+  /// Plaintext legacy values pass through. Fields that can't be decrypted
+  /// (e.g. another user's profile, or a missing key) are dropped rather than
+  /// shown as ciphertext.
+  Future<Map<String, dynamic>> _decryptProfile(
+    Map<String, dynamic> raw,
+    String ownerUid,
+  ) async {
+    final out = Map<String, dynamic>.from(raw);
+    for (final field in _encryptedProfileFields) {
+      final value = out[field];
+      if (value is! String) continue;
+      try {
+        out[field] = await _crypto.decryptString(ownerUid, value);
+      } catch (e) {
+        debugPrint('FirestoreService: cannot decrypt "$field": $e');
+        out.remove(field);
+      }
+    }
+    if (raw.containsKey('displayName') && out['displayName'] == null) {
+      out['displayName'] = 'User';
+    }
+    return out;
+  }
+
+  /// Builds the Firestore document for a case. Only `id` and `completedAt`
+  /// stay readable; everything else goes into one encrypted `payload`.
+  Future<Map<String, dynamic>> _encodeCase(
+    Map<String, dynamic> json,
+    String caseId,
+    Object completedAt,
+  ) async {
+    final payload = Map<String, dynamic>.from(json)
+      ..remove('id')
+      ..remove('completedAt');
+    return {
+      'id': caseId,
+      'completedAt': completedAt,
+      'payload': await _crypto.encryptJson(currentUserId, payload),
+      'encVersion': 1,
+    };
+  }
+
+  /// Reverses [_encodeCase]. Documents without a `payload` are legacy
+  /// plaintext cases and are returned as-is.
+  Future<Map<String, dynamic>> _decodeCase(
+    Map<String, dynamic> raw,
+    String docId,
+  ) async {
+    final payload = raw['payload'];
+    Map<String, dynamic> data;
+    if (payload is String && CryptoService.isEncrypted(payload)) {
+      data = await _crypto.decryptJson(currentUserId, payload);
+      if (raw['completedAt'] != null) data['completedAt'] = raw['completedAt'];
+    } else {
+      data = Map<String, dynamic>.from(raw);
+    }
+    data['id'] = docId;
+    return data;
+  }
+
   // ── USER PROFILE ────────────────────────────────────────────────────────────
 
   /// Saves or updates the user profile in Firestore at `users/{uid}`.
@@ -53,6 +139,7 @@ class FirestoreService {
   }) async {
     final docRef = _firestore.collection('users').doc(user.uid);
     final snapshot = await docRef.get();
+    final existing = await _decryptProfile(snapshot.data() ?? {}, user.uid);
 
     String providerId = provider ?? 'firebase';
     if (user.providerData.isNotEmpty) {
@@ -60,8 +147,8 @@ class FirestoreService {
     }
 
     final requestedName = fullName?.trim();
-    final existingFullName = snapshot.data()?['fullName'];
-    final existingDisplayName = snapshot.data()?['displayName'];
+    final existingFullName = existing['fullName'];
+    final existingDisplayName = existing['displayName'];
     final emailAlias = user.email?.split('@').first;
     final resolvedFullName = requestedName != null && requestedName.isNotEmpty
         ? requestedName
@@ -78,6 +165,17 @@ class FirestoreService {
                           : null)));
     final effectiveDisplayName = resolvedFullName ?? 'User';
 
+    final encDisplayName = await _crypto.encryptString(
+      user.uid,
+      effectiveDisplayName,
+    );
+    final encGender = gender == null
+        ? null
+        : await _crypto.encryptString(user.uid, gender);
+    final encPhone = phone == null
+        ? null
+        : await _crypto.encryptString(user.uid, phone);
+
     final data = <String, dynamic>{
       'uid': user.uid,
       'username':
@@ -85,15 +183,18 @@ class FirestoreService {
           (user.email != null && user.email!.isNotEmpty
               ? user.email!.split('@').first
               : ''),
-      'displayName': effectiveDisplayName,
-      'gender': ?gender,
-      'phone': ?phone,
+      'displayName': encDisplayName,
+      'gender': ?encGender,
+      'phone': ?encPhone,
       'email': user.email ?? '',
       'provider': providerId,
       'lastLoginAt': FieldValue.serverTimestamp(),
     };
     if (resolvedFullName != null) {
-      data['fullName'] = resolvedFullName;
+      data['fullName'] = await _crypto.encryptString(
+        user.uid,
+        resolvedFullName,
+      );
     }
 
     if (!snapshot.exists) {
@@ -124,25 +225,29 @@ class FirestoreService {
     String? country,
     String? licenseNumber,
   }) async {
+    final uid = currentUserId;
+    final trimmedName = fullName.trim();
+    final encName = await _crypto.encryptString(uid, trimmedName);
+
     final data = <String, dynamic>{
-      'fullName': fullName.trim(),
-      'displayName': fullName.trim(),
+      'fullName': encName,
+      'displayName': encName,
       'updatedAt': FieldValue.serverTimestamp(),
     };
-    void setOptionalField(String key, String? value) {
+    Future<void> setOptionalField(String key, String? value) async {
       final normalizedValue = value?.trim() ?? '';
       data[key] = normalizedValue.isEmpty
           ? FieldValue.delete()
-          : normalizedValue;
+          : await _crypto.encryptString(uid, normalizedValue);
     }
 
-    setOptionalField('gender', gender);
-    setOptionalField('phone', phone);
-    setOptionalField('specialty', specialty);
-    setOptionalField('hospitalClinic', hospitalClinic);
-    setOptionalField('city', city);
-    setOptionalField('country', country);
-    setOptionalField('licenseNumber', licenseNumber);
+    await setOptionalField('gender', gender);
+    await setOptionalField('phone', phone);
+    await setOptionalField('specialty', specialty);
+    await setOptionalField('hospitalClinic', hospitalClinic);
+    await setOptionalField('city', city);
+    await setOptionalField('country', country);
+    await setOptionalField('licenseNumber', licenseNumber);
 
     await _userDocRef.set(data, SetOptions(merge: true));
   }
@@ -168,15 +273,13 @@ class FirestoreService {
       return Stream.value(null);
     }
     final targetUid = uid ?? user!.uid;
-    return _firestore
-        .collection('users')
-        .doc(targetUid)
-        .snapshots()
-        .map(
-          (snap) => snap.exists && snap.data() != null
-              ? UserProfile.fromMap(snap.data()!)
-              : null,
-        );
+    return _firestore.collection('users').doc(targetUid).snapshots().asyncMap((
+      snap,
+    ) async {
+      if (!snap.exists || snap.data() == null) return null;
+      final decrypted = await _decryptProfile(snap.data()!, targetUid);
+      return UserProfile.fromMap(decrypted);
+    });
   }
 
   /// Retrieves the user profile document from Firestore.
@@ -186,7 +289,8 @@ class FirestoreService {
     if (!doc.exists || doc.data() == null) {
       return null;
     }
-    return UserProfile.fromMap(doc.data()!);
+    final decrypted = await _decryptProfile(doc.data()!, targetUid);
+    return UserProfile.fromMap(decrypted);
   }
 
   // ── CASES (USER DATA ISOLATION) ─────────────────────────────────────────────
@@ -196,11 +300,16 @@ class FirestoreService {
   Future<List<PredictionHistoryItem>> loadCases() async {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _casesRef.get();
 
-    final List<PredictionHistoryItem> cases = snapshot.docs.map((doc) {
-      final data = Map<String, dynamic>.from(doc.data());
-      data['id'] = doc.id;
-      return PredictionHistoryItem.fromJson(data);
-    }).toList();
+    final List<PredictionHistoryItem> cases = [];
+    for (final doc in snapshot.docs) {
+      try {
+        final data = await _decodeCase(doc.data(), doc.id);
+        cases.add(PredictionHistoryItem.fromJson(data));
+      } catch (e) {
+        // One undecryptable/corrupt case must not break the whole list.
+        debugPrint('FirestoreService: skipping case ${doc.id}: $e');
+      }
+    }
 
     // Sort descending by completion timestamp
     cases.sort((a, b) => b.completedAt.compareTo(a.completedAt));
@@ -212,11 +321,18 @@ class FirestoreService {
     PredictionHistoryItem caseItem, {
     String? explicitCaseId,
   }) async {
+    print("START SAVE CASE");
     final String caseId = explicitCaseId ?? caseItem.id ?? const Uuid().v4();
-    final data = Map<String, dynamic>.from(caseItem.toJson());
-    data['id'] = caseId;
-    data['completedAt'] = Timestamp.fromDate(caseItem.completedAt);
-    await _casesRef.doc(caseId).set(data);
+    try {
+      final data = await _encodeCase(
+        Map<String, dynamic>.from(caseItem.toJson()),
+        caseId,
+        Timestamp.fromDate(caseItem.completedAt),
+      );
+      await _casesRef.doc(caseId).set(data);
+    } catch (e) {
+      debugPrint('FirestoreService: failed to save case $caseId: $e');
+    }
     return caseId;
   }
 
@@ -241,7 +357,8 @@ class FirestoreService {
 
   /// Safely migrates legacy data stored under global/hardcoded doc `users/1`
   /// into the newly authenticated user's scoped path `users/{uid}/cases`
-  /// WITHOUT deleting or corrupting any existing data.
+  /// WITHOUT deleting or corrupting any existing data. Migrated cases are
+  /// encrypted on the way in.
   Future<int> migrateLegacyDataIfRequested() async {
     final uid = currentUserId;
     if (uid == '1') return 0; // Already using legacy ID
@@ -273,7 +390,13 @@ class FirestoreService {
       for (final doc in legacyHistory.docs) {
         final targetDoc = await _casesRef.doc(doc.id).get();
         if (!targetDoc.exists) {
-          await _casesRef.doc(doc.id).set(doc.data());
+          final legacy = doc.data();
+          final encoded = await _encodeCase(
+            legacy,
+            doc.id,
+            legacy['completedAt'] ?? Timestamp.now(),
+          );
+          await _casesRef.doc(doc.id).set(encoded);
           migratedCases++;
         }
       }

@@ -15,14 +15,10 @@ final firebaseStorageServiceProvider = Provider<StorageService>((ref) {
 /// All examination images are strictly stored under `users/{doctorUid}/cases/{caseId}.jpg`
 /// using the authenticated doctor's UID.
 class StorageService {
-  final FirebaseStorage? _customStorage;
   final FirebaseAuth? _customAuth;
 
-  StorageService({FirebaseStorage? storage, FirebaseAuth? auth})
-    : _customStorage = storage,
-      _customAuth = auth;
+  StorageService({FirebaseAuth? auth}) : _customAuth = auth;
 
-  FirebaseStorage get _storage => _customStorage ?? FirebaseStorage.instance;
   FirebaseAuth get _auth => _customAuth ?? FirebaseAuth.instance;
 
   /// Retrieves the current authenticated user's UID.
@@ -58,35 +54,6 @@ class StorageService {
       debugPrint('Profile image compression fallback: $e');
       return rawBytes;
     }
-  }
-
-  /// Uploads an X-ray image file to `users/{doctorUid}/cases/{caseId}.jpg`
-  /// and returns the permanent Firebase Storage download URL.
-  Future<String> uploadCaseImage({
-    required String caseId,
-    required Uint8List imageBytes,
-    String contentType = 'image/jpeg',
-  }) async {
-    final doctorUid = currentUserId;
-    final storageRef = _storage.ref().child(
-      'users/$doctorUid/cases/$caseId.jpg',
-    );
-
-    final metadata = SettableMetadata(
-      contentType: contentType,
-      customMetadata: {
-        'doctorUid': doctorUid,
-        'caseId': caseId,
-        'uploadedAt': DateTime.now().toIso8601String(),
-      },
-    );
-
-    // Upload raw bytes (cross-platform: works seamlessly on Android, iOS, and Web)
-    await storageRef.putData(imageBytes, metadata);
-
-    // Retrieve permanent download URL
-    final String photoURL = await storageRef.getDownloadURL();
-    return photoURL;
   }
 
   /// Uploads the authenticated user's profile image to Cloudinary and returns
@@ -146,28 +113,6 @@ class StorageService {
   }
 
   /// Minimal diagnostic test from an authenticated session to verify Firebase Storage
-  Future<String> testStorageUpload() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw StateError('No authenticated Firebase user');
-    }
-    debugPrint(
-      'PROFILE IMAGE: testing storage upload on bucket ${_storage.bucket} for user ${user.uid}',
-    );
-    final ref = _storage.ref().child('users/${user.uid}/profile/test.txt');
-    await ref.putString('profile upload test');
-    final url = await ref.getDownloadURL();
-    debugPrint('STORAGE TEST URL: $url');
-    return url;
-  }
 
   /// Fetches raw image bytes from storage by download URL or reference
-  Future<Uint8List?> getImageBytes(String photoURL) async {
-    try {
-      final ref = _storage.refFromURL(photoURL);
-      return await ref.getData(15 * 1024 * 1024); // max 15MB
-    } catch (_) {
-      return null;
-    }
-  }
 }
